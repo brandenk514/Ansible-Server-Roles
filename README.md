@@ -7,4 +7,4 @@ Configure servers for provisioing using Ansible and deployed via AWX
 3. Create a job template and run it against your inventory
 
 ## Get Involved
-I welcome your feedback and ideas. 
+I welcome your feedback and ideas! I do this in my spare time so responsive my take a while. Thank you for your patience! 
