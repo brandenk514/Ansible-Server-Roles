@@ -23,3 +23,16 @@
     group: root
     mode: '0600'
     backup: true
+
+- name: Set IPv4 Address and DNS
+  community.general.nmcli:
+    conn_name: my-eth1
+    ifname: eth1
+    type: ethernet
+    ip4: "{{ ipv4_address }}"
+    gw4: "{{ ipv4_address_gw }}"
+    dns4:
+    - "{{ dns_1 }}"
+    - "{{ dns_2 }}"
+    autoconnect: true
+    state: present
