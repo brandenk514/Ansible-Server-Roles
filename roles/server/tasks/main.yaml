@@ -14,7 +14,7 @@
     validate: /usr/sbin/sshd -t -f %s
     backup: true
   become: true
-  notify: Restart sshd
+  #notify: Restart sshd
 
 - name: Set timezone to US Pacific time
   community.general.timezone:
