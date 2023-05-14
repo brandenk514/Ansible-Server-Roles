@@ -1,10 +1,7 @@
 ---
 
-- name: Replace old hostname with new hostname (requires Ansible >= 2.4)
-  ansible.builtin.replace:
-    path: /etc/hosts
-    regexp: '(\s+)rhel9-temp.local.uaccloud.com(\s+.*)?$'
-    replace: '\1"{{ hostname }}"\2'
+- name: Set hostname using systemd
+  ansible.builtin.shell: hostnamectl set-hostname "{{ hostname }}"
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
