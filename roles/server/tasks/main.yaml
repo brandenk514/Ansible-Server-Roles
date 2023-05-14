@@ -11,6 +11,7 @@
       role: "Red Hat Enterprise Server"
       service_level_agreement: "Self Supported"
       sync: true
+  become: true
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
@@ -21,11 +22,13 @@
     mode: '0600'
     validate: /usr/sbin/sshd -t -f %s
     backup: true
+  become: true
   notify: Restart sshd
 
 - name: Set timezone to US Pacific time
   community.general.timezone:
     name: America/Los_Angeles
+  become: true
 
 - name: Update Message of the Day
   ansible.builtin.template:
@@ -35,3 +38,4 @@
     group: root
     mode: '0600'
     backup: true
+  become: true
