@@ -2,6 +2,7 @@
 
 - name: Set hostname using systemd
   ansible.builtin.shell: hostnamectl set-hostname "{{ hostname }}"
+  become: true
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
