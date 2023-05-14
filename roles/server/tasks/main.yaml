@@ -1,9 +1,21 @@
 ---
 
+- name: Register with Red Hat, set syspurpose attributes and synchronize them with server
+  community.general.redhat_subscription:
+    state: present
+    username: "{{ rh_username }}"
+    password: "{{ rh_password}}"
+    auto_attach: true
+    syspurpose:
+      usage: "Production"
+      role: "Red Hat Enterprise Server"
+      service_level_agreement: "Self Supported"
+      sync: true
+
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
     src: templates/sshd_config
-    dest: /etc/ssh/sshd_config
+    dest: /etc/ssh/sshd_config.d/uac_sshd_conf.conf
     owner: root
     group: root
     mode: '0600'
@@ -23,16 +35,3 @@
     group: root
     mode: '0600'
     backup: true
-
-- name: Set IPv4 Address and DNS
-  community.general.nmcli:
-    conn_name: my-eth1
-    ifname: eth1
-    type: ethernet
-    ip4: "{{ ipv4_address }}"
-    gw4: "{{ ipv4_address_gw }}"
-    dns4:
-    - "{{ dns_1 }}"
-    - "{{ dns_2 }}"
-    autoconnect: true
-    state: present
