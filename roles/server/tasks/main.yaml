@@ -1,21 +1,13 @@
 ---
 
-- name: Register with Red Hat, set syspurpose attributes and synchronize them with server
-  community.general.redhat_subscription:
-    state: present
-    username: "{{ rh_username }}"
-    password: "{{ rh_password}}"
-    auto_attach: true
-    syspurpose:
-      usage: "Production"
-      role: "Red Hat Enterprise Server"
-      service_level_agreement: "Self Supported"
-      sync: true
-  become: true
+- name: Set a hostname
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
+    use: systemd
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
-    src: templates/sshd_config
+    src: sshd_config
     dest: /etc/ssh/sshd_config.d/uac_sshd_conf.conf
     owner: root
     group: root
@@ -32,10 +24,29 @@
 
 - name: Update Message of the Day
   ansible.builtin.template:
-    src: templates/motd
+    src: motd
     dest: /etc/motd
     owner: root
     group: root
     mode: '0600'
     backup: true
+  become: true
+
+- name: Reboot and check that is up with uptime command
+  ansible.builtin.reboot:
+    reboot_timeout: 180
+    boot_time_command: uptime
+  become: true
+
+- name: Register with Red Hat, set syspurpose attributes and synchronize them with server
+  community.general.redhat_subscription:
+    state: present
+    username: "{{ rh_username }}"
+    password: "{{ rh_password}}"
+    auto_attach: true
+    syspurpose:
+      usage: "Production"
+      role: "Red Hat Enterprise Server"
+      service_level_agreement: "Self Supported"
+      sync: true
   become: true
