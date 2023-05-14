@@ -1,5 +1,4 @@
 ---
-
 - name: Set hostname using systemd
   ansible.builtin.shell: hostnamectl set-hostname "{{ hostname }}"
   become: true
@@ -10,11 +9,10 @@
     dest: /etc/ssh/sshd_config.d/99-uac-sshd.conf
     owner: root
     group: root
-    mode: '0600'
+    mode: "0600"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
   become: true
-  #notify: Restart sshd
 
 - name: Set timezone to US Pacific time
   community.general.timezone:
@@ -27,7 +25,7 @@
     dest: /etc/motd
     owner: root
     group: root
-    mode: '0600'
+    mode: "0600"
     backup: true
   become: true
 
@@ -49,3 +47,8 @@
       service_level_agreement: "Self Supported"
       sync: true
   become: true
+
+- name: Upgrade all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
