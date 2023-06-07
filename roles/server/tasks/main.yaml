@@ -1,7 +1,6 @@
 ---
 - name: Set hostname using systemd
   ansible.builtin.shell: hostnamectl set-hostname "{{ hostname }}"
-  become: true
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
@@ -12,12 +11,10 @@
     mode: "0600"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
-  become: true
 
 - name: Set timezone to US Pacific time
   community.general.timezone:
     name: America/Los_Angeles
-  become: true
 
 - name: Update Message of the Day
   ansible.builtin.template:
@@ -27,13 +24,11 @@
     group: root
     mode: "0600"
     backup: true
-  become: true
 
 - name: Reboot and check that is up with uptime command
   ansible.builtin.reboot:
     reboot_timeout: 180
     boot_time_command: uptime
-  become: true
 
 - name: Register with Red Hat, set syspurpose attributes and synchronize them with server
   community.general.redhat_subscription:
@@ -46,10 +41,8 @@
       role: "Red Hat Enterprise Server"
       service_level_agreement: "Self Supported"
       sync: true
-  become: true
 
 - name: Upgrade all packages
   ansible.builtin.dnf:
     name: "*"
     state: latest
-  become: true
