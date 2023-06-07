@@ -46,3 +46,7 @@
   ansible.builtin.dnf:
     name: "*"
     state: latest
+
+- name: Install insight client
+  ansible.builtin.shell:
+    cmd: insights-client --register
