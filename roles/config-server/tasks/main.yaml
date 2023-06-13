@@ -1,6 +1,7 @@
 ---
 - name: Set hostname using systemd
-  ansible.builtin.shell: hostnamectl set-hostname "{{ hostname }}"
+  ansible.builtin.shell: 
+    cmd: hostnamectl set-hostname "{{ hostname }}"
 
 - name: Set authorized keys taken from url
   ansible.posix.authorized_key:
@@ -31,11 +32,6 @@
     mode: "0600"
     backup: true
 
-- name: Reboot and check that is up with uptime command
-  ansible.builtin.reboot:
-    reboot_timeout: 180
-    boot_time_command: uptime
-
 - name: Register with Red Hat, set syspurpose attributes and synchronize them with server
   community.general.redhat_subscription:
     state: present
@@ -56,3 +52,8 @@
 - name: Install insight client
   ansible.builtin.shell:
     cmd: insights-client --register
+
+- name: Reboot and check that is up with uptime command
+  ansible.builtin.reboot:
+    reboot_timeout: 180
+    boot_time_command: uptime
