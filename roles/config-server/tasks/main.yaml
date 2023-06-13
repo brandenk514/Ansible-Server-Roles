@@ -2,6 +2,12 @@
 - name: Set hostname using systemd
   ansible.builtin.shell: hostnamectl set-hostname "{{ hostname }}"
 
+- name: Set authorized keys taken from url
+  ansible.posix.authorized_key:
+    user: "{{ user }}"
+    state: present
+    key: "{{ link }}"
+
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
     src: sshd_config
