@@ -56,4 +56,3 @@
 - name: Reboot and check that is up with uptime command
   ansible.builtin.reboot:
     reboot_timeout: 180
-    boot_time_command: uptime

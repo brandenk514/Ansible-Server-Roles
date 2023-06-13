@@ -4,7 +4,7 @@ LoginGraceTime 1m
 PermitRootLogin no
 MaxAuthTries 3
 MaxSessions 5
-
+PrintMotd yes
 PasswordAuthentication no
 PermitEmptyPasswords no
 KbdInteractiveAuthentication no
