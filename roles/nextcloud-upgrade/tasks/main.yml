@@ -1,0 +1,83 @@
+---
+
+- name: Stop service apache2
+  ansible.builtin.service:
+    name: apache2
+    state: stopped
+  become: true
+
+- name: Wait 60 seconds for connections to drop
+  ansible.builtin.wait_for:
+    timeout: 60
+  become: true
+
+- name: Make backup of nextcloud directory
+  copy:
+    src: "{{ nextcloud_dir }}"
+    dest: "{{ nextcloud_backup_dir }}"
+    remote_src: true
+  become: true
+
+- name: Remove old nextcloud directory
+  file:
+    path: "{{ nextcloud_dir }}"
+    state: absent
+  become: true
+
+- name: Download latest Nextcloud Release and put it in /tmp/
+  get_url:
+    url: https://download.nextcloud.com/server/releases/latest.zip
+    dest: /tmp/
+  become: true
+
+- name: Unarchive the zip file to the nextcloud directory
+  unarchive:
+    src: /tmp/latest.zip
+    dest: /var/www/html/
+    remote_src: true
+  become: true
+
+- name: Copy the config from backup to active nextcloud instance
+  copy:
+    src: "{{ nextcloud_backup_dir }}config/config.php"
+    dest: "{{ nextcloud_dir }}config/config.php"
+    remote_src: true
+  become: true
+
+- name: Set owner and group to www-data
+  file:
+    path: "{{ nextcloud_dir }}"
+    group: www-data
+    owner: www-data
+    recurse: true
+  become: true
+
+- name: Set directory permissions
+  ansible.builtin.shell:
+    chdir: "{{ nextcloud_dir }}"
+    cmd: find {{ nextcloud_dir }} -type d -exec chmod 750 {} \;
+  become: true
+
+- name: Set file permissions
+  ansible.builtin.shell:
+    chdir: "{{ nextcloud_dir }}"
+    cmd: find {{ nextcloud_dir }} -type f -exec chmod 640 {} \;
+  become: true
+
+- name: Start service apache2
+  ansible.builtin.service:
+    name: apache2
+    state: started
+  become: true
+
+- name: Upgrade Nextcloud
+  ansible.builtin.shell:
+    chdir: "{{ nextcloud_dir }}"
+    cmd: sudo -u www-data php occ upgrade
+  become: true
+
+- name: Clean up nextcloud zip
+  file:
+    path: /tmp/latest.zip
+    state: absent
+  become: true

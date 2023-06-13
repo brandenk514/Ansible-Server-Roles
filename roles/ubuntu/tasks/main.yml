@@ -1,0 +1,36 @@
+---
+
+- name: Run the equivalent of "apt update" as a separate step
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Update all packages to their latest version
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+  become: true
+
+- name: Upgrade the OS (apt dist-upgrade)
+  ansible.builtin.apt:
+    upgrade: dist
+  become: true
+
+- name: Remove useless packages from the cache
+  ansible.builtin.apt:
+    autoclean: true
+  become: true
+
+- name: Remove dependencies that are no longer required
+  ansible.builtin.apt:
+    autoremove: true
+  become: true
+
+- name: Reboot the box
+  reboot:
+    msg: "Reboot initiated by AWX for kernel updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    post_reboot_delay: 30
+    test_command: uptime
+  become: true
