@@ -1,0 +1,16 @@
+---
+- name: Update dnf cache
+  dnf:
+    update_cache: true
+  become: true
+
+- name: Upgrade all packages with dnf
+  dnf:
+    name: "*"
+    state: latest
+  become: true
+
+- name: Remove all unused dependencies with dnf
+  dnf:
+    autoremove: true
+  become: true
