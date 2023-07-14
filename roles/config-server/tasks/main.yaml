@@ -19,7 +19,7 @@
     validate: /usr/sbin/sshd -t -f %s
     backup: true
 
-- name: Set timezone to US Pacific time
+- name: Set timezone to US Pacific
   community.general.timezone:
     name: America/Los_Angeles
 
@@ -31,27 +31,6 @@
     group: root
     mode: "0600"
     backup: true
-
-- name: Register with Red Hat, set syspurpose attributes and synchronize them with server
-  community.general.redhat_subscription:
-    state: present
-    username: "{{ rh_username }}"
-    password: "{{ rh_password}}"
-    auto_attach: true
-    syspurpose:
-      usage: "Production"
-      role: "Red Hat Enterprise Server"
-      service_level_agreement: "Self Supported"
-      sync: true
-
-- name: Upgrade all packages
-  ansible.builtin.dnf:
-    name: "*"
-    state: latest
-
-- name: Install insight client
-  ansible.builtin.shell:
-    cmd: insights-client --register
 
 - name: Reboot and check that is up with uptime command
   ansible.builtin.reboot:
