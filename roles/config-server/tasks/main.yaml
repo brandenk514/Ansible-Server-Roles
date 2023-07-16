@@ -31,7 +31,3 @@
     group: root
     mode: "0600"
     backup: true
-
-- name: Reboot and check that is up with uptime command
-  ansible.builtin.reboot:
-    reboot_timeout: 180
