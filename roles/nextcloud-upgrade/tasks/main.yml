@@ -1,5 +1,4 @@
 ---
-
 - name: Stop service apache2
   ansible.builtin.service:
     name: apache2

@@ -1,6 +1,6 @@
 ---
 - name: Set hostname using systemd
-  ansible.builtin.shell: 
+  ansible.builtin.shell:
     cmd: hostnamectl set-hostname "{{ hostname }}"
 
 - name: Set authorized keys taken from url
