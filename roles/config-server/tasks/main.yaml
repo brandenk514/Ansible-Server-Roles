@@ -32,3 +32,10 @@
     group: root
     mode: "0600"
     backup: true
+
+- name: Install additional packages
+  ansible.builtin.apt:
+    pkg:
+    - sudo
+    - nano
+    state: present
