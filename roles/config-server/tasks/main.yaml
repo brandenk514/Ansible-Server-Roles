@@ -38,4 +38,5 @@
     pkg:
     - sudo
     - nano
+    - netplan.io
     state: present
