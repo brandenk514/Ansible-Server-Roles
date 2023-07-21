@@ -7,7 +7,7 @@
   ansible.posix.authorized_key:
     user: "{{ user }}"
     state: present
-    key: "{{ link }}"
+    key: "{{ key }}"
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
