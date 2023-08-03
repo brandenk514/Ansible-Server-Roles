@@ -42,38 +42,49 @@
     - lvm2
     state: present
 
-- name: Print list of sd devices minus the first one
-  debug:
-    var: ansible_devices.keys() | select('match', '^sd[^a]+') | list
+- name: Gather list of /dev/sd* devices minus the first one
+  set_fact:
+    disks: ansible_devices.keys() | select('match', '^sd[^a]+') | list
 
+- name: Creating volume group
+  lvg:
+    vg: data-vg
+    pvs: /dev/{{ item }}
+    peresize: true
+  loop: "{{ disks }}"
+  when: disks | length > 0
 
-# - name: task for creating volume group
-#   lvg:
-#       vg: data-vg
-#       pvs: /dev/nvme1n1p1
-#       peresize: true
+- name: Creating logical volume
+  lvol:
+    vg: data-vg
+    lv:  data-lv
+    size: 100%FREE
+  when: disks | length > 0
 
-# - name: task for creating logical volume
-#   lvol:
-#       vg: sample-vg
-#       lv:  sample-lv
-#       size: 1g
-#       force: yes
+- name: Create directory data if does not exist
+  file:
+    path: /mnt/data
+    state: directory
+    mode: '0755'
+  when: disks | length > 0
 
-# - name: Create directory data1 if does not exist
-#   file:
-#     path: /data1
-#     state: directory
-#     mode: '0755'
+- name: format the ext4 filesystem
+  filesystem:
+    fstype: ext4
+    dev: /dev/data-vg/data-lv
+  when: disks | length > 0
 
-# - name: format the xfs filesystem
-#   filesystem:
-#     fstype: xfs
-#     dev: /dev/sample-vg/sample-lv
+- name: mount the lv on /data1
+  mount:
+    path: /data
+    src: /dev/data-vg/data-lv
+    fstype: ext4
+    state: mounted
+  when: disks | length > 0
 
-# - name: mount the lv on /data1
-#   mount:
-#     path: /data1
-#     src: /dev/sample-vg/sample-lv
-#     fstype: xfs
-#     state: mounted
+- name: Add new mount to fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "/dev/mapper/data-vg-data-lv /mnt/data ext4 defaults 0 0"
+    insertafter: EOF
+  when: disks | length > 0
