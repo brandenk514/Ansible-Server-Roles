@@ -39,4 +39,41 @@
     - nano
     - netplan.io
     - nfs-common
+    - lvm2
     state: present
+
+- name: Print list of sd devices
+  debug:
+    var: ansible_devices.keys() | select('match', '^sd') | list |[1:]
+
+
+# - name: task for creating volume group
+#   lvg:
+#       vg: data-vg
+#       pvs: /dev/nvme1n1p1
+#       peresize: true
+
+# - name: task for creating logical volume
+#   lvol:
+#       vg: sample-vg
+#       lv:  sample-lv
+#       size: 1g
+#       force: yes
+
+# - name: Create directory data1 if does not exist
+#   file:
+#     path: /data1
+#     state: directory
+#     mode: '0755'
+
+# - name: format the xfs filesystem
+#   filesystem:
+#     fstype: xfs
+#     dev: /dev/sample-vg/sample-lv
+
+# - name: mount the lv on /data1
+#   mount:
+#     path: /data1
+#     src: /dev/sample-vg/sample-lv
+#     fstype: xfs
+#     state: mounted
