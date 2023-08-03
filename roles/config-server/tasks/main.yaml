@@ -42,9 +42,9 @@
     - lvm2
     state: present
 
-- name: Print list of sd devices
+- name: Print list of sd devices minus the first one
   debug:
-    var: ansible_devices.keys() | select('match', '^sd') | list[1:]
+    var: ansible_devices.keys() | select('match', '^sd[^a]+') | list
 
 
 # - name: task for creating volume group
