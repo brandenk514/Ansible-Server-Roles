@@ -38,4 +38,5 @@
     - sudo
     - nano
     - netplan.io
+    - nfs-common
     state: present
