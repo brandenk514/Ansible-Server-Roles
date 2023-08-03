@@ -42,7 +42,7 @@
     - lvm2
     state: present
 
-- name: Gather list of /dev/sd* devices minus the first one
+- name: Gather list of /dev/sd* devices minus the first one then pipe it into a csv string
   set_fact:
     disks: "{{ ansible_devices.keys() | select('match', '^sd[^a]+') | map('regex_replace', '^(.*)$', '/dev/\\1') | list | join(',') }}"
 
