@@ -80,7 +80,7 @@
 
 - name: Mount the lv on /data
   mount:
-    path: /data
+    path: /mnt/data
     src: /dev/data-vg/data-lv
     fstype: ext4
     state: mounted
