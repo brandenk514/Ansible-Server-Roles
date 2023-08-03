@@ -3,6 +3,19 @@
   ansible.builtin.shell:
     cmd: hostnamectl set-hostname "{{ hostname }}"
 
+- name: Set timezone to US Pacific
+  community.general.timezone:
+    name: America/Los_Angeles
+
+- name: Update Message of the Day
+  ansible.builtin.template:
+    src: motd
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: "0600"
+    backup: true
+
 - name: Set authorized keys taken from url
   ansible.posix.authorized_key:
     user: "{{ user }}"
@@ -17,19 +30,6 @@
     group: root
     mode: "0600"
     validate: /usr/sbin/sshd -t -f %s
-    backup: true
-
-- name: Set timezone to US Pacific
-  community.general.timezone:
-    name: America/Los_Angeles
-
-- name: Update Message of the Day
-  ansible.builtin.template:
-    src: motd
-    dest: /etc/motd
-    owner: root
-    group: root
-    mode: "0600"
     backup: true
 
 - name: Install additional packages
