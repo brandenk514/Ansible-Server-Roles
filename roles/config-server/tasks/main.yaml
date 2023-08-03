@@ -72,13 +72,13 @@
     mode: '0755'
   when: disks | length > 0
 
-- name: format the ext4 filesystem
+- name: Format the ext4 filesystem
   filesystem:
     fstype: ext4
     dev: /dev/data-vg/data-lv
   when: disks | length > 0
 
-- name: mount the lv on /data1
+- name: Mount the lv on /data
   mount:
     path: /data
     src: /dev/data-vg/data-lv
@@ -89,6 +89,6 @@
 - name: Add new mount to fstab
   lineinfile:
     path: /etc/fstab
-    line: "/dev/mapper/data-vg-data-lv /mnt/data ext4 defaults 0 0"
+    line: "dev/mapper/data--vg-data--lv /mnt/data ext4 defaults 0 0"
     insertafter: EOF
   when: disks | length > 0
