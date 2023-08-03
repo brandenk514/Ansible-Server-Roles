@@ -54,7 +54,7 @@
   lvg:
     vg: data-vg
     pvs: /dev/{{ item }}
-    peresize: true
+    pvresize: true
   loop: "{{ disks }}"
   when: disks | length > 0
 
