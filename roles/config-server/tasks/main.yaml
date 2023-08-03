@@ -47,6 +47,10 @@
     var: ansible_devices.keys() | select('match', '^sd[^a]+') 
 
 - name: Gather list of /dev/sd* devices minus the first one
+  debug:
+    var: ansible_devices.keys() | select('match', '^sd[^a]+') | list
+
+- name: Gather list of /dev/sd* devices minus the first one
   set_fact:
     disks: "{{ ansible_devices.keys() | select('match', '^sd[^a]+') | join(,) | list}}"
 
