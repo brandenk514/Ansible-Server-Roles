@@ -16,6 +16,17 @@
     mode: "0600"
     backup: true
 
+- name: Install additional packages
+  ansible.builtin.apt:
+    pkg:
+      - sudo
+      - nano
+      - netplan.io
+      - nfs-common
+      - lvm2
+      - openvswitch-switch
+    state: present
+
 - name: Set authorized keys taken from url
   ansible.posix.authorized_key:
     user: "{{ user }}"
@@ -32,15 +43,16 @@
     validate: /usr/sbin/sshd -t -f %s
     backup: true
 
-- name: Install additional packages
-  ansible.builtin.apt:
-    pkg:
-    - sudo
-    - nano
-    - netplan.io
-    - nfs-common
-    - lvm2
-    state: present
+- name: Adding netplan config
+  ansible.builtin.template:
+    src: 00-netplan-conf.yaml
+    dest: /etc/netplan/00-netplan-conf.yaml
+    owner: root
+    group: root
+    mode: "0600"
+    validate: netplan try
+    backup: true
+  notify: restart_openvswitch
 
 - name: Gather list of /dev/sd* devices minus the first one then pipe it into a csv string
   set_fact:
@@ -56,7 +68,7 @@
 - name: Creating logical volume
   lvol:
     vg: data-vg
-    lv:  data-lv
+    lv: data-lv
     size: 100%FREE
   when: disks | length > 0
 
@@ -64,7 +76,7 @@
   file:
     path: /mnt/data
     state: directory
-    mode: '0755'
+    mode: "0755"
   when: disks | length > 0
 
 - name: Format the ext4 filesystem

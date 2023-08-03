@@ -3,3 +3,8 @@
   ansible.builtin.service:
     name: sshd
     state: restarted
+
+- name: restart_openvswitch
+  ansible.builtin.service:
+    name: openvswitch-switch
+    state: enabled
