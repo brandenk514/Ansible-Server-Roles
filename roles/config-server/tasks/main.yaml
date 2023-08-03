@@ -44,7 +44,7 @@
 
 - name: Print list of sd devices
   debug:
-    var: ansible_devices.keys() | select('match', '^sd') | ansible_devices.keys()[1:]
+    var: ansible_devices.keys() | select('match', '^sd') | list[1:]
 
 
 # - name: task for creating volume group
