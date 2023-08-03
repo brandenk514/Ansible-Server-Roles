@@ -18,7 +18,6 @@
     mode: "0600"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
-  notify: restart_sshd
 
 - name: Set timezone to US Pacific
   community.general.timezone:
