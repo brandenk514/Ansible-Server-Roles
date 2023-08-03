@@ -49,7 +49,7 @@
 - name: Creating volume group
   lvg:
     vg: data-vg
-    pvs: "{ disks }}"
+    pvs: "{{ disks }}"
     pvresize: true
   when: disks | length > 0
 
