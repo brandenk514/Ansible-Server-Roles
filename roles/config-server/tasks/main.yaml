@@ -53,9 +53,9 @@
 - name: Creating volume group
   lvg:
     vg: data-vg
-    pvs: /dev/{{ item }}
+    pvs: /dev/{{ disks }}
     pvresize: true
-  loop: "{{ disks }}"
+#  loop: "{{ disks }}"
   when: disks | length > 0
 
 - name: Creating logical volume
