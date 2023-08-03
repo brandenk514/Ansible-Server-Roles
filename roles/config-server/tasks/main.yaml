@@ -42,9 +42,13 @@
     - lvm2
     state: present
 
+# - name: Gather list of /dev/sd* devices minus the first one
+#   set_fact:
+#     disks: ansible_devices.keys() | select('match', '^sd[^a]+') | list
+
 - name: Gather list of /dev/sd* devices minus the first one
   set_fact:
-    disks: ansible_devices.keys() | select('match', '^sd[^a]+') | list
+    disks: "{{ ansible_devices.keys() | select('match', '^sd[^a]+') | list }}"
 
 - name: Creating volume group
   lvg:
