@@ -1,6 +1,7 @@
 # This is a custom conf that belongs in the conf.d folder under file name 99-*
 
 LoginGraceTime 1m
+PrintMotd yes
 PermitRootLogin no
 MaxAuthTries 3
 MaxSessions 5
