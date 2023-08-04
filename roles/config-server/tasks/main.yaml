@@ -87,14 +87,7 @@
 - name: Mount the lv on /data
   mount:
     path: /mnt/data
-    src: /dev/data-vg/data-lv
+    src: /dev/mapper/data--vg-data--lv/
     fstype: ext4
     state: mounted
-  when: disks | length > 0
-
-- name: Add new mount to fstab
-  lineinfile:
-    path: /etc/fstab
-    line: "/dev/mapper/data--vg-data--lv /mnt/data ext4 defaults 0 0"
-    insertafter: EOF
   when: disks | length > 0

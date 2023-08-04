@@ -2,11 +2,13 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    ens3:
+    ens192:
       dhcp4: yes
-      # addresses:
+      #addresses:
       #   - 192.168.121.221/24
-      # gateway4: 192.168.121.1
+      #routes:
+      #  - to: 0.0.0.0/0
+      #    via: <new_gateway_address>
       # nameservers:
       #     addresses: [8.8.8.8, 1.1.1.1]
       #     search: [local.uaccloud.com]
