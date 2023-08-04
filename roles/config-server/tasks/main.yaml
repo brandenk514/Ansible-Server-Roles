@@ -50,7 +50,6 @@
     owner: root
     group: root
     mode: "0600"
-    validate: netplan try
     backup: true
   notify: restart_openvswitch
 
