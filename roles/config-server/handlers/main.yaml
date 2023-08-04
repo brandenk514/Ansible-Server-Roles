@@ -7,4 +7,4 @@
 - name: restart_openvswitch
   ansible.builtin.service:
     name: openvswitch-switch
-    state: enabled
+    state: restarted
