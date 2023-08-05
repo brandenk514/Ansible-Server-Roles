@@ -87,7 +87,7 @@
 - name: Mount the lv on /data
   mount:
     path: /mnt/data
-    src: /dev/mapper/data--vg-data--lv/
+    src: /dev/data-vg/data-lv
     fstype: ext4
     state: mounted
   when: disks | length > 0
