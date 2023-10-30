@@ -2,6 +2,6 @@
 - hosts: all
   become: true
   roles:
-    - config-server
     - patch-debian
+    - config-server
     - reboot
