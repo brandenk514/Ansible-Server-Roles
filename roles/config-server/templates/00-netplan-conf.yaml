@@ -2,7 +2,7 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    ens192:
+    ens33:
       dhcp4: yes
       #addresses:
       #   - 192.168.121.221/24
