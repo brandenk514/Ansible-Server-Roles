@@ -43,6 +43,11 @@
     validate: /usr/sbin/sshd -t -f %s
     backup: true
 
+- name: Remove original netplan file
+  ansible.builtin.file:
+    path: /etc/netplan/00-installer-config.yaml
+    state: absent    
+
 - name: Adding netplan config
   ansible.builtin.template:
     src: 00-netplan-conf.yaml
