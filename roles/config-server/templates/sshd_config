@@ -3,6 +3,8 @@
 LoginGraceTime 1m
 PrintMotd yes
 PermitRootLogin no
+PermitEmptyPasswords no
+PubkeyAuthentication yes
 MaxAuthTries 3
 MaxSessions 5
 PasswordAuthentication no
