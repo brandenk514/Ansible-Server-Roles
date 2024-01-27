@@ -1,8 +1,4 @@
 ---
-- name: Set hostname using systemd
-  ansible.builtin.shell:
-    cmd: hostnamectl set-hostname "{{ hostname }}"
-
 - name: Set timezone to US Pacific
   community.general.timezone:
     name: America/Los_Angeles
@@ -43,56 +39,7 @@
     validate: /usr/sbin/sshd -t -f %s
     backup: true
 
-- name: Remove original netplan file
-  ansible.builtin.file:
-    path: /etc/netplan/00-installer-config.yaml
-    state: absent    
-
-- name: Adding netplan config
-  ansible.builtin.template:
-    src: 00-netplan-conf.yaml
-    dest: /etc/netplan/00-netplan-conf.yaml
-    owner: root
-    group: root
-    mode: "0600"
-    backup: true
-  notify: restart_openvswitch
-
-- name: Gather list of /dev/sd* devices minus the first one then pipe it into a csv string
-  set_fact:
-    disks: "{{ ansible_devices.keys() | select('match', '^sd[^a]+') | map('regex_replace', '^(.*)$', '/dev/\\1') | list | join(',') }}"
-
-- name: Creating volume group
-  lvg:
-    vg: data-vg
-    pvs: "{{ disks }}"
-    pvresize: true
-  when: disks | length > 0
-
-- name: Creating logical volume
-  lvol:
-    vg: data-vg
-    lv: data-lv
-    size: 100%FREE
-  when: disks | length > 0
-
-- name: Create directory data if does not exist
-  file:
-    path: /mnt/data
-    state: directory
-    mode: "0755"
-  when: disks | length > 0
-
-- name: Format the ext4 filesystem
-  filesystem:
-    fstype: ext4
-    dev: /dev/data-vg/data-lv
-  when: disks | length > 0
-
-- name: Mount the lv on /data
-  mount:
-    path: /mnt/data
-    src: /dev/data-vg/data-lv
-    fstype: ext4
-    state: mounted
-  when: disks | length > 0
+- name: Reset password for admin account
+  ansible.builtin.user:
+    name: "{{ user }}"
+    password: "{{ pass }}"
