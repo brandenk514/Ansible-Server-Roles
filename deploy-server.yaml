@@ -4,4 +4,3 @@
   roles:
     - patch-debian
     - config-server
-    - reboot
