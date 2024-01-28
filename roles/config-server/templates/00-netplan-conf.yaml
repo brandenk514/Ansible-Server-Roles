@@ -3,12 +3,12 @@ network:
   renderer: networkd
   ethernets:
     ens33:
-      dhcp4: yes
-      #addresses:
-      #   - 192.168.121.221/24
-      #routes:
-      #  - to: 0.0.0.0/0
-      #    via: <new_gateway_address>
-      # nameservers:
-      #     addresses: [8.8.8.8, 1.1.1.1]
-      #     search: [local.uaccloud.com]
+      link-local: [ ipv4 ]
+      addresses:
+        - "{{ ip-addr }}"
+      routes:
+       - to: 0.0.0.0/0
+         via: "{{ gateway }}"
+      nameservers:
+          addresses: "{{ dns-servers }}"
+          search: "{{ search-domain }}"
