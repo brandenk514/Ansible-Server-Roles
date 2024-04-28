@@ -28,3 +28,26 @@
     validate: /usr/sbin/sshd -t -f %s
     backup: true
   notify: restart_sshd
+
+- name: 'Check if /etc/cloud/ exists'
+  ansible.builtin.stat:
+    path: '/etc/cloud/'
+  register: etc_cloud_folder
+
+- name: 'Generate /etc/cloud/cloud-init.disabled'
+  ansible.builtin.copy:
+    dest: '/etc/cloud/cloud-init.disabled'
+    content: 'disabled by ansible\n'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when:
+    - 'etc_cloud_folder.stat.exists'
+
+- name: Reboot the box
+  reboot:
+    msg: "Reboot initiated by AWX for kernel updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    post_reboot_delay: 30
+    test_command: uptime
