@@ -16,6 +16,7 @@
   ansible.builtin.apt:
     pkg:
       - qemu-guest-agent
+      - ufw
     state: present
 
 - name: Update sshd configuration safely, avoid locking yourself out
