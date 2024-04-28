@@ -27,3 +27,4 @@
     mode: "0600"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
+  notify: restart_sshd
