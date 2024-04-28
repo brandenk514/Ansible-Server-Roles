@@ -15,31 +15,5 @@
 - name: Install additional packages
   ansible.builtin.apt:
     pkg:
-      - sudo
-      - nano
-      - netplan.io
-      - nfs-common
-      - lvm2
-      - openvswitch-switch
+      - qemu-guest-agent
     state: present
-
-- name: Set authorized keys taken from url
-  ansible.posix.authorized_key:
-    user: "{{ user }}"
-    state: present
-    key: "{{ key }}"
-
-- name: Update sshd configuration safely, avoid locking yourself out
-  ansible.builtin.template:
-    src: sshd_config
-    dest: /etc/ssh/sshd_config.d/00-uac-sshd.conf
-    owner: root
-    group: root
-    mode: "0600"
-    validate: /usr/sbin/sshd -t -f %s
-    backup: true
-
-- name: Reset password for admin account
-  ansible.builtin.user:
-    name: "{{ user }}"
-    password: "{{ pass }}"
