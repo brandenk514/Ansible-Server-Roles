@@ -1,0 +1,59 @@
+---
+- name: Download foo.conf
+  ansible.builtin.get_url:
+    url: http://example.com/path/file.conf
+    dest: /etc/foo.conf
+    mode: '0440'
+
+- name: Install Docker with their CURL script
+  ansible.builtin.shell: curl -sSL https://get.docker.com/ | CHANNEL=stable bash
+
+- name: Enable service docker, and restart it
+  ansible.builtin.service:
+    name: docker
+    enabled: yes
+    state: restarted
+
+- name: Ensure swapaccount=1 is present in GRUB_CMDLINE_LINUX_DEFAULT
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="... swapaccount=1 ..."'
+  notify: Update grub configuration
+
+- name: Create directory for Pterodactyl configuration
+  file:
+    path: /etc/pterodactyl
+    state: directory
+    mode: '0755'
+
+- name: Download and install Pterodactyl Wings
+  shell: >
+    curl -L -o /usr/local/bin/wings
+    "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }}"
+  args:
+    creates: /usr/local/bin/wings
+
+- name: Make Wings executable
+  file:
+    path: /usr/local/bin/wings
+    mode: '0755'
+
+- name: Wait for 10 minutes to set up the config. YOU NEED TO DO THIS MANUALLY!
+  pause:
+    seconds: 600
+
+- name: Create daemonized service for wings
+  ansible.builtin.template:
+    src: wings.service
+    dest: /etc/systemd/system/wings.service
+    owner: root
+    group: root
+    mode: "0600"
+    backup: true
+
+- name: Enable and start Wings service
+  systemd:
+    name: wings
+    enabled: yes
+    state: started
