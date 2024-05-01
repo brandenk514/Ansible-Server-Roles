@@ -1,10 +1,4 @@
 ---
-- name: Download foo.conf
-  ansible.builtin.get_url:
-    url: http://example.com/path/file.conf
-    dest: /etc/foo.conf
-    mode: '0440'
-
 - name: Install Docker with their CURL script
   ansible.builtin.shell: curl -sSL https://get.docker.com/ | CHANNEL=stable bash
 
@@ -20,6 +14,17 @@
     regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
     line: 'GRUB_CMDLINE_LINUX_DEFAULT="... swapaccount=1 ..."'
   notify: Update grub configuration
+
+- name: Update grub configuration
+  shell: update-grub
+
+- name: Reboot the box to use new grub
+  reboot:
+    msg: "Reboot initiated by AWX"
+    connect_timeout: 5
+    reboot_timeout: 300
+    post_reboot_delay: 30
+    test_command: uptime
 
 - name: Create directory for Pterodactyl configuration
   file:
