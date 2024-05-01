@@ -18,6 +18,7 @@
       - qemu-guest-agent
       - ufw
       - nano
+      - iputils-ping
     state: present
 
 - name: Update sshd configuration safely, avoid locking yourself out

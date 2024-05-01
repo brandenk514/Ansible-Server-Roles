@@ -12,7 +12,7 @@
   lineinfile:
     path: /etc/default/grub
     regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
-    line: 'GRUB_CMDLINE_LINUX_DEFAULT="... swapaccount=1 ..."'
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="swapaccount=1"'
 
 - name: Update grub configuration
   shell: update-grub
