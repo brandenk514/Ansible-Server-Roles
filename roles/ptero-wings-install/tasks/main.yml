@@ -7,6 +7,7 @@
   ansible.builtin.apt:
     pkg:
     - nginx
+    - openssl
     state: present
 
 - name: Install Docker with their CURL script
