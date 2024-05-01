@@ -67,4 +67,4 @@
   systemd:
     name: wings
     enabled: yes
-    state: started
+    state: restarted
