@@ -1,4 +1,14 @@
 ---
+- name: Update repositories list
+  apt:
+    update_cache: yes
+
+- name: Install dependencies
+  ansible.builtin.apt:
+    pkg:
+    - nginx
+    state: present
+
 - name: Install Docker with their CURL script
   ansible.builtin.shell: curl -sSL https://get.docker.com/ | CHANNEL=stable bash
 
@@ -48,10 +58,6 @@
   file:
     path: /usr/local/bin/wings
     mode: '0755'
-
-- name: Wait for 10 minutes to set up the config. YOU NEED TO DO THIS MANUALLY!
-  pause:
-    seconds: 600
 
 - name: Create daemonized service for wings
   ansible.builtin.template:
