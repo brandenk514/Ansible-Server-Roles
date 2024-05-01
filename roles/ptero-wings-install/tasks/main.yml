@@ -2,6 +2,7 @@
 - name: Update repositories list
   apt:
     update_cache: yes
+  ignore_errors: true
 
 - name: Install dependencies
   ansible.builtin.apt:
