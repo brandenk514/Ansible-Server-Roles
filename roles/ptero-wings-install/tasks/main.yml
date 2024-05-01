@@ -26,6 +26,12 @@
     post_reboot_delay: 30
     test_command: uptime
 
+- name: Ensure local admin in in Docker group
+  user:
+    name: "{{ local_admin }}"
+    groups: docker
+    append: yes
+
 - name: Create directory for Pterodactyl configuration
   file:
     path: /etc/pterodactyl
