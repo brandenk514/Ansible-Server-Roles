@@ -17,6 +17,7 @@
     pkg:
       - qemu-guest-agent
       - ufw
+      - nano
     state: present
 
 - name: Update sshd configuration safely, avoid locking yourself out
