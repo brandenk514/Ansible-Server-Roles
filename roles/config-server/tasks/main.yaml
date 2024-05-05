@@ -19,6 +19,8 @@
       - ufw
       - nano
       - iputils-ping
+      - dnsutils
+      - openvswitch-switch-dpdk
     state: present
 
 - name: Update sshd configuration safely, avoid locking yourself out

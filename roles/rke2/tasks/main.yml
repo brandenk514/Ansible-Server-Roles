@@ -114,7 +114,6 @@
     enabled: yes
   with_items: "{{ masters }}"
 
-
 - name: Join worker nodes to the cluster
   block:
     - name: Install RKE2 agent on worker nodes
