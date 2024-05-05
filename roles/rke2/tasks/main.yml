@@ -1,0 +1,256 @@
+---
+- name: Set NTP on
+  command: timedatectl set-ntp on
+
+- name: Install dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - curl
+    - iptables
+
+- name: Install kubectl if not installed
+  block:
+    - name: Check if kubectl installed
+      command: kubectl version
+      register: kubectl_check
+      changed_when: false
+      failed_when: false
+      check_mode: no
+
+- name: Install kubectl
+  command: "curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl && sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl"
+  when: kubectl_check.rc != 0
+
+- name: Create Kube VIP
+  block:
+    - name: Create directory for Kube VIP manifest
+      file:
+        path: /var/lib/rancher/rke2/server/manifests
+        state: directory
+
+- name: Download kube-vip script
+  get_url:
+    url: https://raw.githubusercontent.com/JamesTurland/JimsGarage/main/Kubernetes/RKE2/kube-vip
+    dest: "{{ ansible_env.HOME }}/kube-vip"
+
+- name: Modify kube-vip.yaml with interface and VIP
+  replace:
+    path: "{{ ansible_env.HOME }}/kube-vip.yaml"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  loop:
+    - regexp: "\$interface"
+      replace: "{{ interface }}"
+    - regexp: "\$vip"
+      replace: "{{ vip }}"
+
+- name: Move kube-vip.yaml to manifests directory
+  copy:
+    src: "{{ ansible_env.HOME }}/kube-vip.yaml"
+    dest: /var/lib/rancher/rke2/server/manifests/kube-vip.yaml
+
+- name: Find and replace k3s entries with rke2 in kube-vip.yaml
+  replace:
+    path: /var/lib/rancher/rke2/server/manifests/kube-vip.yaml
+    regexp: 'k3s'
+    replace: 'rke2'
+
+- name: Set up RKE2 configuration file
+  block:
+    - name: Create RKE2 config directory
+      file:
+        path: /etc/rancher/rke2
+        state: directory
+
+- name: Generate RKE2 config file
+  copy:
+    content: |
+      tls-san:
+        - "{{ vip }}"
+        - "{{ master1 }}"
+        - "{{ master2 }}"
+        - "{{ master3 }}"
+      write-kubeconfig-mode: 0644
+      disable:
+        - rke2-ingress-nginx
+    dest: /etc/rancher/rke2/config.yaml
+
+- name: Update PATH and KUBECONFIG in bashrc
+  block:
+    - name: Update PATH and KUBECONFIG in bashrc
+      lineinfile:
+        path: ~/.bashrc
+        line: "{{ item }}"
+      with_items:
+        - "export KUBECONFIG=/etc/rancher/rke2/rke2.yaml"
+        - "export PATH=${PATH}:/var/lib/rancher/rke2/bin"
+        - "alias k=kubectl"
+      create: yes
+
+- name: Copy kube-vip.yaml and config.yaml to all masters
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "{{ ansible_env.HOME }}/kube-vip.yaml", dest: "{{ user }}@{{ item }}:~/kube-vip.yaml" }
+    - { src: "/etc/rancher/rke2/config.yaml", dest: "{{ user }}@{{ item }}:~/config.yaml" }
+    - { src: "~/.ssh/{{ certName }}", dest: "{{ user }}@{{ item }}:~/.ssh/{{ certName }}" }
+    - { src: "~/.ssh/{{ certName }}.pub", dest: "{{ user }}@{{ item }}:~/.ssh/{{ certName }}.pub" }
+  loop: "{{ allmasters }}"
+
+
+- name: Join additional master nodes to the cluster
+  block:
+    - name: Install RKE2 on additional master nodes
+      command: "ssh -tt {{ user }}@{{ item }} -i ~/.ssh/{{ certName }} sudo su -c 'curl -sfL https://get.rke2.io | sh -'"
+      with_items: "{{ masters }}"
+
+- name: Start RKE2 service on additional master nodes
+  service:
+    name: rke2-server
+    state: started
+    enabled: yes
+  with_items: "{{ masters }}"
+
+
+- name: Join worker nodes to the cluster
+  block:
+    - name: Install RKE2 agent on worker nodes
+      command: "ssh -tt {{ user }}@{{ item }} -i ~/.ssh/{{ certName }} sudo su -c 'curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE=\"agent\" sh -'"
+      with_items: "{{ workers }}"
+
+- name: Start RKE2 agent service on worker nodes
+  service:
+    name: rke2-agent
+    state: started
+    enabled: yes
+  with_items: "{{ workers }}"
+
+
+- name: Deploy Metallb
+  block:
+    - name: Deploy Metallb namespace
+      kubectl:
+        src: "https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml"
+        state: present
+        namespace: metallb-system
+
+- name: Deploy Metallb
+  kubectl:
+    src: "https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml"
+    state: present
+    namespace: metallb-system
+
+- name: Download and configure IP address pool for Metallb
+  get_url:
+    url: "https://raw.githubusercontent.com/JamesTurland/JimsGarage/main/Kubernetes/RKE2/ipAddressPool"
+    dest: "{{ ansible_env.HOME }}/ipAddressPool"
+  changed_when: false
+
+- name: Deploy IP pools and l2Advertisement
+  kubectl:
+    src: "{{ ansible_env.HOME }}/ipAddressPool"
+    state: present
+
+- name: Wait for Metallb to be ready
+  kubectl_wait:
+    namespace: metallb-system
+    for_condition: "ready"
+    selector: "component=controller"
+    timeout: 1800
+
+
+- name: Install Helm
+  block:
+    - name: Download Helm script
+      get_url:
+        url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+        dest: "{{ ansible_env.HOME }}/get_helm.sh"
+      changed_when: false
+
+- name: Change permissions of Helm script
+  file:
+    path: "{{ ansible_env.HOME }}/get_helm.sh"
+    mode: "0755"
+
+- name: Install Helm
+  command: "{{ ansible_env.HOME }}/get_helm.sh"
+  args:
+    creates: /usr/local/bin/helm
+
+
+- name: Deploy Cert-Manager
+  block:
+    - name: Apply Cert-Manager CRDs
+      kubectl:
+        src: "https://github.com/cert-manager/cert-manager/releases/download/v1.13.2/cert-manager.crds.yaml"
+        state: present
+
+- name: Add Jetstack Helm repo
+  command: "helm repo add jetstack https://charts.jetstack.io"
+  args:
+    creates: /usr/local/bin/helm
+
+- name: Update Helm repo
+  command: "helm repo update"
+  args:
+    creates: /usr/local/bin/helm
+
+- name: Install Cert-Manager
+  helm:
+    name: cert-manager
+    repo: jetstack
+    chart: cert-manager
+    version: v1.13.2
+    namespace: cert-manager
+    create_namespace: true
+
+
+- name: Deploy Rancher
+  block:
+    - name: Add Rancher Helm repo
+      helm_repository:
+        name: rancher-latest
+        repository_url: https://releases.rancher.com/server-charts/latest
+
+    - name: Create Rancher namespace
+      kubernetes_namespace:
+        name: cattle-system
+        state: present
+
+    - name: Install Rancher
+      helm:
+        name: rancher
+        repo: rancher-latest
+        chart: rancher
+        namespace: cattle-system
+        set:
+          hostname: rancher.my.org
+          bootstrapPassword: admin
+
+
+- name: Expose Rancher using LoadBalancer
+  block:
+    - name: Expose Rancher service
+      kubectl:
+        action: "expose"
+        resource: "deployment"
+        name: "rancher"
+        port: "443"
+        type: "LoadBalancer"
+        namespace: "cattle-system"
+
+    - name: Wait for LoadBalancer to be ready
+      wait_for:
+        timeout: 1800
+        state: started
+        delay: 5
+        host: "localhost"
+        port: "443"
+
+
+- name: Print access instructions for Rancher
+  debug:
+    msg: "Access Rancher from the LoadBalancer IP - Password is admin!"
