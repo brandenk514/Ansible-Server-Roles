@@ -15,9 +15,14 @@
     mode: "0600"
     backup: true
 
+- name: Create timesyncd.conf.d 
+  ansible.builtin.file:
+    path: /etc/systemd/timesyncd.conf.d/
+    state: directory
+
 - name: Update NTP sources for timesyncd
   ansible.builtin.template:
-    src: uac-timesync.conf
+    src: uac-ntp.conf
     dest: /etc/systemd/timesyncd.conf.d/50-uac-timesyncd.conf
     owner: root
     group: root
