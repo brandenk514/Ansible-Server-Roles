@@ -8,8 +8,3 @@ PubkeyAuthentication yes
 MaxAuthTries 3
 MaxSessions 5
 PasswordAuthentication no
-PermitEmptyPasswords no
-KbdInteractiveAuthentication no
-UsePAM yes
-X11Forwarding yes
-AcceptEnv LANG LC_*

@@ -15,6 +15,15 @@
     mode: "0600"
     backup: true
 
+- name: Update NTP sources for timesyncd
+  ansible.builtin.template:
+    src: uac-timesync.conf
+    dest: /etc/systemd/timesyncd.conf.d/50-uac-timesyncd.conf
+    owner: root
+    group: root
+    mode: "0600"
+    backup: true
+
 - name: Install additional packages
   ansible.builtin.apt:
     pkg:
