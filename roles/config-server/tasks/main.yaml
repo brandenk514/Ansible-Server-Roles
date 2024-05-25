@@ -19,6 +19,9 @@
   ansible.builtin.file:
     path: /etc/systemd/timesyncd.conf.d/
     state: directory
+    owner: root
+    group: root
+    mode: "0755"
 
 - name: Update NTP sources for timesyncd
   ansible.builtin.template:
