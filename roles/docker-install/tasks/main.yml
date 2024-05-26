@@ -1,46 +1,66 @@
 ---
-- name: Update apt package index
-  apt:
-    update_cache: true
+tasks:
+  - name: Update apt package index
+    apt:
+      update_cache: true
 
-- name: Install prerequisites
-  apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - software-properties-common
-    state: present
+  - name: Install required packages
+    apt:
+      name:
+        - ca-certificates
+        - curl
+      state: present
 
-- name: Add Docker official GPG key
-  apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
+  - name: Add Docker's official GPG key directory
+    file:
+      path: /etc/apt/keyrings
+      state: directory
+      mode: '0755'
 
-- name: Add Docker repository
-  apt_repository:
-    repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
-    state: present
-    update_cache: true
+  - name: Download Docker's official GPG key
+    get_url:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      dest: /etc/apt/keyrings/docker.asc
+      mode: '0644'
 
-- name: Install Docker
-  apt:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
-    state: present
+  - name: Add Docker's apt repository
+    ansible.builtin.shell: |
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list
+    args:
+      executable: /bin/bash
 
-- name: Ensure Docker is started and enabled
-  service:
-    name: docker
-    state: started
-    enabled: true
+  - name: Update apt package index again
+    apt:
+      update_cache: true
 
-- name: Add user to the docker group
-  user:
-    name: uac-admin
-    groups: docker
-    append: true
+  - name: Install Docker packages
+    apt:
+      name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+        - docker-ce-rootless-extras
+      state: present
+
+  - name: Ensure Docker service is started
+    service:
+      name: docker
+      state: started
+      enabled: true
+
+  - name: Verify Docker installation by running hello-world
+    command: docker run hello-world
+    register: hello_world_output
+    ignore_errors: true
+
+  - name: Display hello-world output
+    debug:
+      var: hello_world_output.stdout
+    when: hello_world_output.rc == 0
+
+  - name: Fail if Docker hello-world test fails
+    fail:
+      msg: "Docker hello-world test failed."
+    when: hello_world_output.rc != 0
