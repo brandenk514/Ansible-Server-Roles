@@ -2,5 +2,4 @@
 - hosts: all
   become: true
   roles:
-    - config-server
     - docker-install
