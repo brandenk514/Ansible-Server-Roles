@@ -63,3 +63,9 @@
   fail:
     msg: "Docker hello-world test failed."
   when: hello_world_output.rc != 0
+
+- name: Add user to the docker group
+  user:
+    name: uac-admin
+    groups: docker
+    append: true
