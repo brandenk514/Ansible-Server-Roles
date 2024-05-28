@@ -43,6 +43,12 @@
       - docker-ce-rootless-extras
     state: present
 
+- name: Ensure UFW is removed
+  apt:
+    name:
+      - ufw
+    state: absent
+
 - name: Ensure Docker service is started
   service:
     name: docker
