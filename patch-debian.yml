@@ -1,7 +1,6 @@
 ---
 - hosts: all
   serial: 1
-  max_fail_percentage: 30
   become: true
   roles:
     - patch-debian
