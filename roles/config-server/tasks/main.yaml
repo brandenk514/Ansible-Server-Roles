@@ -68,6 +68,16 @@
   when:
     - 'etc_cloud_folder.stat.exists'
 
+- name: Allow SSH access from trusted subnets
+  community.general.ufw:
+    state: enabled
+    rule: allow
+    proto: tcp
+    port: '22'
+    src: '{{ item }}'
+  loop:
+    - 192.168.105.0/24
+
 - name: Check for reboot-required file
   stat:
     path: /var/run/reboot-required
