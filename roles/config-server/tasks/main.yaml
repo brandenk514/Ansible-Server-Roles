@@ -74,7 +74,10 @@
     rule: allow
     proto: tcp
     port: '22'
-    src: 192.168.105.0/24
+    src: '{{ item }}'
+  loop:
+    - 192.168.105.0/24
+    - 192.168.100.0/24
 
 - name: Check for reboot-required file
   stat:
