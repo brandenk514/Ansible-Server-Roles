@@ -43,8 +43,21 @@
       - dnsutils
     state: present
 
-- name: Populate service facts
-  ansible.builtin.service_facts:
+- name: Check status of the package
+  apt:
+    name: docker
+    state: list
+  register: package_status
+
+- name: Display package status
+  debug:
+    msg: "Package {{ package_name }} is installed"
+  when: package_status.package_list is defined and package_name in package_status.package_list
+
+- name: Display package status
+  debug:
+    msg: "Package {{ package_name }} is NOT installed"
+  when: package_status.package_list is not defined or package_name not in package_status.package_list
 
 - name: Removing UFW from docker installs
   ansible.builtin.apt:
