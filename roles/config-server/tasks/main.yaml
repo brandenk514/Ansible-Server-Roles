@@ -43,6 +43,18 @@
       - dnsutils
     state: present
 
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker
+  ignore_errors: yes
+
+- name: Install additional packages
+  ansible.builtin.apt:
+    pkg:
+      - ufw
+    state: absent
+  when: docker.rc == 0
+
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
     src: sshd_config
@@ -78,6 +90,7 @@
   loop:
     - 192.168.105.0/24
     - 192.168.100.0/24
+  when: docker.rc != 0
 
 - name: Create a swap file using fallocate
   command: fallocate -l 4G /swapfile
