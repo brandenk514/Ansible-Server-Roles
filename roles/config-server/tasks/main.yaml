@@ -92,7 +92,7 @@
   loop:
     - 192.168.105.0/24
     - 192.168.100.0/24
-  when: docker_version_output.rc != 0
+  when: ansible_facts.services["docker"].state != "running"
 
 - name: Check if fallocate is available
   command: which fallocate
