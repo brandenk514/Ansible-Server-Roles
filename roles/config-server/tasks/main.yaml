@@ -43,21 +43,22 @@
       - dnsutils
     state: present
 
-- name: Check if docker is installed
-  command: docker --version
-  register: docker_version_output
-  ignore_errors: true
+- name: Check if Docker service is installed
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+  register: docker_service_status
+  ignore_errors: yes
 
-- name: Check Docker installation status
+- name: Display message if Docker service is running
   debug:
-    msg: >
-      Docker is installed. Version info: {{ docker_version_output.stdout }}
-  when: docker_version_output.rc == 0
+    msg: "Docker is installed and running."
+  when: docker_service_status.changed == false
 
-- name: Handle Docker not installed
+- name: Display message if Docker service is not found or not running
   debug:
-    msg: "Docker is not installed."
-  when: docker_version_output.rc != 0
+    msg: "Docker is not installed or not running."
+  when: docker_service_status.failed or docker_service_status.changed
 
 - name: Removing UFW from docker installs
   ansible.builtin.apt:
