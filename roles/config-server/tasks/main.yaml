@@ -89,10 +89,16 @@
     - 192.168.100.0/24
   when: "'docker-ce' not in ansible_facts.packages"
 
+- name: Check if swapfile exists
+  ansible.builtin.stat:
+    path: /swapfile
+  register: swapfile_stat
+
 - name: Create a swap file using fallocate
   command: fallocate -l 4G /swapfile
   args:
     creates: /swapfile
+  when: not swapfile_stat.stat.exists
 
 - name: Set up swap file with correct permissions
   file:
@@ -100,12 +106,15 @@
     owner: root
     group: root
     mode: '0600'
+  when: not swapfile_stat.stat.exists
 
 - name: Format the file as swap
   command: mkswap /swapfile
+  when: not swapfile_stat.stat.exists
 
 - name: Enable the swap file
   command: swapon /swapfile
+  when: not swapfile_stat.stat.exists
 
 - name: Add swap file to /etc/fstab
   mount:
@@ -116,14 +125,17 @@
     dump: 0
     passno: 0
     state: present
+  when: not swapfile_stat.stat.exists
 
 - name: Verify swap is active
   command: swapon --show
   register: swap_output
+  when: not swapfile_stat.stat.exists
 
 - name: Display swap info
   debug:
     var: swap_output.stdout
+  when: not swapfile_stat.stat.exists
 
 - name: Check for reboot-required file
   stat:
