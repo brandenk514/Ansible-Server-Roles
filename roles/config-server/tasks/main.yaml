@@ -43,20 +43,8 @@
       - dnsutils
     state: present
 
-- name: Check status of docker package
-  command: dpkg -s docker
-  register: package_status
-  ignore_errors: yes
-
-- name: Display nginx package status
-  debug:
-    msg: "Package nginx is installed"
-  when: package_status.rc == 0
-
-- name: Display nginx package status
-  debug:
-    msg: "Package nginx is NOT installed"
-  when: package_status.rc != 0
+- name: Populate service facts
+  ansible.builtin.service_facts:
 
 - name: Removing UFW from docker installs
   ansible.builtin.apt:
@@ -100,7 +88,7 @@
   loop:
     - 192.168.105.0/24
     - 192.168.100.0/24
-  when: ansible_facts.services["docker"].state != "running"
+  when: ansible_facts.services["docker"].state == "failed"
 
 - name: Create a swap file using fallocate
   command: fallocate -l 4G /swapfile
