@@ -79,6 +79,42 @@
     - 192.168.105.0/24
     - 192.168.100.0/24
 
+- name: Create a swap file using fallocate
+  command: fallocate -l 4G /swapfile
+  args:
+    creates: /swapfile
+
+- name: Set up swap file with correct permissions
+  file:
+    path: /swapfile
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Format the file as swap
+  command: mkswap /swapfile
+
+- name: Enable the swap file
+  command: swapon /swapfile
+
+- name: Add swap file to /etc/fstab
+  mount:
+    name: none
+    src: /swapfile
+    fstype: swap
+    opts: sw
+    dump: 0
+    passno: 0
+    state: present
+
+- name: Verify swap is active
+  command: swapon --show
+  register: swap_output
+
+- name: Display swap info
+  debug:
+    var: swap_output.stdout
+
 - name: Check for reboot-required file
   stat:
     path: /var/run/reboot-required
