@@ -48,7 +48,7 @@
   register: docker
   ignore_errors: yes
 
-- name: Install additional packages
+- name: Removing UFW from Docker installs
   ansible.builtin.apt:
     pkg:
       - ufw
@@ -92,10 +92,22 @@
     - 192.168.100.0/24
   when: docker.rc != 0
 
+- name: Check if fallocate is available
+  command: which fallocate
+  register: fallocate_check
+  failed_when: fallocate_check.rc != 0
+
 - name: Create a swap file using fallocate
   command: fallocate -l 4G /swapfile
   args:
     creates: /swapfile
+  when: fallocate_check.stdout is not empty
+
+- name: Verify swap file was created
+  stat:
+    path: /swapfile
+  register: swapfile_stat
+  failed_when: not swapfile_stat.stat.exists
 
 - name: Set up swap file with correct permissions
   file:
@@ -106,9 +118,11 @@
 
 - name: Format the file as swap
   command: mkswap /swapfile
+  when: swapfile_stat.stat.exists
 
 - name: Enable the swap file
   command: swapon /swapfile
+  when: swapfile_stat.stat.exists
 
 - name: Add swap file to /etc/fstab
   mount:
@@ -119,6 +133,7 @@
     dump: 0
     passno: 0
     state: present
+  when: swapfile_stat.stat.exists
 
 - name: Verify swap is active
   command: swapon --show
