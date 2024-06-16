@@ -46,15 +46,11 @@
 - name: Gather facts about installed packages
   ansible.builtin.package_facts:
 
-- name: Check if Docker is installed
-  debug:
-    msg: "Docker is installed"
-  when: "'docker-ce' in ansible_facts.packages"
-
-- name: Update apt cache if Docker is not installed
+- name: Removing UFW from docker installs
   ansible.builtin.apt:
-    update_cache: yes
-  when: "'docker-ce' not in ansible_facts.packages"
+    name: ufw
+    state: absent
+  when: "'docker-ce' in ansible_facts.packages"
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
@@ -91,7 +87,7 @@
   loop:
     - 192.168.105.0/24
     - 192.168.100.0/24
-  when: ansible_facts.services["docker"].state == "failed"
+  when: "'docker-ce' not in ansible_facts.packages"
 
 - name: Create a swap file using fallocate
   command: fallocate -l 4G /swapfile
