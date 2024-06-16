@@ -43,15 +43,13 @@
       - dnsutils
     state: present
 
-- name: Populate service facts
-  ansible.builtin.service_facts:
+- name: Gather facts about installed packages
+  ansible.builtin.package_facts:
 
-- name: Removing UFW from docker installs
-  ansible.builtin.apt:
-    name: ufw
-    state: absent
-  when: ansible_facts.services["docker"].state == "running"
-  ignore_errors: true
+- name: Check if Docker is installed
+  debug:
+    msg: "Docker is installed"
+  when: "'docker-ce' in ansible_facts.packages"
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
