@@ -64,7 +64,7 @@
   ansible.builtin.apt:
     name: ufw
     state: absent
-  when: docker_version_output.rc == 0
+  when: docker_service_status.changed == false
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
