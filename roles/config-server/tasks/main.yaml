@@ -43,17 +43,27 @@
       - dnsutils
     state: present
 
-- name: Check if Docker is installed
+- name: Check if docker is installed
   command: docker --version
-  register: docker
-  ignore_errors: yes
+  register: docker_version_output
+  ignore_errors: true
 
-- name: Removing UFW from Docker installs
+- name: Check Docker installation status
+  debug:
+    msg: >
+      Docker is installed. Version info: {{ docker_version_output.stdout }}
+  when: docker_version_output.rc == 0
+
+- name: Handle Docker not installed
+  debug:
+    msg: "Docker is not installed."
+  when: docker_version_output.rc != 0
+
+- name: Removing UFW from docker installs
   ansible.builtin.apt:
-    pkg:
-      - ufw
+    name: ufw
     state: absent
-  when: docker.rc == 0
+  when: docker_version_output.rc == 0
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
@@ -90,7 +100,7 @@
   loop:
     - 192.168.105.0/24
     - 192.168.100.0/24
-  when: docker.rc != 0
+  when: docker_version_output.rc != 0
 
 - name: Check if fallocate is available
   command: which fallocate
