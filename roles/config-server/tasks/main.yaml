@@ -43,28 +43,16 @@
       - dnsutils
     state: present
 
-- name: Check if Docker service is installed
-  ansible.builtin.systemd:
-    name: docker
-    state: started
-  register: docker_service_status
-  ignore_errors: yes
-
-- name: Display message if Docker service is running
+- name: Display message if Docker is installed and running
   debug:
     msg: "Docker is installed and running."
-  when: docker_service_status.changed == false
-
-- name: Display message if Docker service is not found or not running
-  debug:
-    msg: "Docker is not installed or not running."
-  when: docker_service_status.failed or docker_service_status.changed
+  when: ansible_facts.services["docker"].state == "running"
 
 - name: Removing UFW from docker installs
   ansible.builtin.apt:
     name: ufw
     state: absent
-  when: docker_service_status.changed == false
+  when: ansible_facts.services["docker"].state == "running"
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
