@@ -43,6 +43,9 @@
       - dnsutils
     state: present
 
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
 - name: Display message if Docker is installed and running
   debug:
     msg: "Docker is installed and running."
