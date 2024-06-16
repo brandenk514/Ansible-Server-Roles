@@ -51,6 +51,11 @@
     msg: "Docker is installed"
   when: "'docker-ce' in ansible_facts.packages"
 
+- name: Update apt cache if Docker is not installed
+  ansible.builtin.apt:
+    update_cache: yes
+  when: "'docker-ce' not in ansible_facts.packages"
+
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
     src: sshd_config
