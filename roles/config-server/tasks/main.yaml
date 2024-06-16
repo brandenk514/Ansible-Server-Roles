@@ -43,21 +43,20 @@
       - dnsutils
     state: present
 
-- name: Check status of the package
-  apt:
-    name: docker
-    state: list
+- name: Check status of docker package
+  command: dpkg -s docker
   register: package_status
+  ignore_errors: yes
 
-- name: Display package status
+- name: Display nginx package status
   debug:
-    msg: "Package {{ package_name }} is installed"
-  when: package_status.package_list is defined and package_name in package_status.package_list
+    msg: "Package nginx is installed"
+  when: package_status.rc == 0
 
-- name: Display package status
+- name: Display nginx package status
   debug:
-    msg: "Package {{ package_name }} is NOT installed"
-  when: package_status.package_list is not defined or package_name not in package_status.package_list
+    msg: "Package nginx is NOT installed"
+  when: package_status.rc != 0
 
 - name: Removing UFW from docker installs
   ansible.builtin.apt:
