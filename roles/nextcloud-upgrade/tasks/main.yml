@@ -27,7 +27,7 @@
 - name: Unarchive the zip file to the nextcloud directory
   unarchive:
     src: /tmp/latest.zip
-    dest: /var/www/html/
+    dest: /var/www/
     remote_src: true
 
 - name: Copy the config from backup to active nextcloud instance
