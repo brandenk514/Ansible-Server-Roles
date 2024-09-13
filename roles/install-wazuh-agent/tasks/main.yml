@@ -36,11 +36,7 @@
     state: started
 
 - name: Lock the agent version
-  ansible.builtin.lineinfile:
-    path: /etc/apt/sources.list.d/wazuh.list
-    regexp: '^deb'
-    line: '#deb'
-    state: present
+  ansible.builtin.shell: sed -i "s/^deb/#deb/" /etc/apt/sources.list.d/wazuh.list
 
 - name: Refresh APT cache
   ansible.builtin.apt:
