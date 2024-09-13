@@ -19,10 +19,10 @@
     update_cache: true
 
 - name: Run Wazuh install command
-  ansible.builtin.command: WAZUH_MANAGER="{{ wazuh_server }}" apt-get install wazuh-agent
+  ansible.builtin.shell: WAZUH_MANAGER="{{ wazuh_server }}" apt-get install wazuh-agent
 
 - name: Reload systemd manager configuration
-  ansible.builtin.command: systemctl daemon-reload
+  ansible.builtin.shell: systemctl daemon-reload
 
 - name: Enable wazuh-agent service
   ansible.builtin.systemd:
@@ -34,7 +34,7 @@
     name: wazuh-agent
     state: started
 
-- name: Comment out lines starting with 'deb' in wazuh.list
+- name: Lock the agent version
   ansible.builtin.lineinfile:
     path: /etc/apt/sources.list.d/wazuh.list
     regexp: '^deb'
