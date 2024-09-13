@@ -1,13 +1,13 @@
 ---
 - name: Get required packages
   ansible.builtin.apt:
-    name: 
+    name:
       - gnupg2
-      - curl 
+      - curl
     state: present
 
 - name: Add the GPG key
-  ansible.builtin.shell: curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import && chmod 644 /usr/share/keyrings/wazuh.gpg
+  ansible.builtin.command: curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import && chmod 644 /usr/share/keyrings/wazuh.gpg
 
 - name: Add the agent repo the sources
   ansible.builtin.apt_repository:
@@ -19,4 +19,28 @@
     update_cache: true
 
 - name: Run Wazuh install command
-  ansible.builtin.shell: WAZUH_MANAGER="{{ wazuh_server }}" apt-get install wazuh-agent
+  ansible.builtin.command: WAZUH_MANAGER="{{ wazuh_server }}" apt-get install wazuh-agent
+
+- name: Reload systemd manager configuration
+  ansible.builtin.command: systemctl daemon-reload
+
+- name: Enable wazuh-agent service
+  ansible.builtin.systemd:
+    name: wazuh-agent
+    enabled: true
+
+- name: Start wazuh-agent service
+  ansible.builtin.systemd:
+    name: wazuh-agent
+    state: started
+
+- name: Comment out lines starting with 'deb' in wazuh.list
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/wazuh.list
+    regexp: '^deb'
+    line: '#deb'
+    state: present
+
+- name: Refresh APT cache
+  ansible.builtin.apt:
+    update_cache: true
