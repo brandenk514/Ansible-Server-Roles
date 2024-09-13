@@ -13,6 +13,7 @@
   ansible.builtin.apt_repository:
     repo: deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main
     state: present
+    filename: wazuh.list
 
 - name: Refresh APT cache
   ansible.builtin.apt:
