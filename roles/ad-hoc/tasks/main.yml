@@ -1,3 +1,11 @@
 ---
-- name: Run the command
-  ansible.builtin.shell: "{{ command }}"
+- name: Remove Wazuh Agent
+  ansible.builtin.apt:
+  pkg:
+    - wazuh-agent
+  state: absent
+
+- name: Remove specified repository file from sources list
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/wazuh.list
+    state: absent
