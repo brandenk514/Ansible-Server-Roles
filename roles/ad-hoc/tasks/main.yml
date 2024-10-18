@@ -1,9 +1,9 @@
 ---
 - name: Remove Wazuh Agent
   ansible.builtin.apt:
-  pkg:
-    - wazuh-agent
-  state: absent
+    pkg:
+      - wazuh-agent
+    state: absent
 
 - name: Remove specified repository file from sources list
   ansible.builtin.file:
