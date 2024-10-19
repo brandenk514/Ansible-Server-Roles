@@ -42,17 +42,6 @@
     validate: /usr/sbin/sshd -t -f %s
     backup: true
 
-- name: Allow SSH access from trusted subnets
-  community.general.ufw:
-    state: enabled
-    rule: allow
-    proto: tcp
-    port: '22'
-    src: '{{ item }}'
-  loop:
-    - 192.168.105.0/24
-    - 192.168.100.0/24
-
 - name: Check for reboot-required file
   ansible.builtin.stat:
     path: /var/run/reboot-required
