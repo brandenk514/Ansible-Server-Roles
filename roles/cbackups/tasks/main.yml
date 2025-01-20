@@ -26,5 +26,5 @@
     name: "{{ item.Name }}"  # Use the container name for restart
     state: started
     restart: true # Restart container
-  loop: "{{ docker_containers.containers }}"
+  loop: "{{ docker_containers.stdout_lines }}"
   when: docker_containers.containers | length > 0
