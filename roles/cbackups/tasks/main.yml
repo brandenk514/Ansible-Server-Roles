@@ -1,7 +1,6 @@
 ---
-- name: Get list of all Docker containers
-  community.docker.docker_container:
-    state: present  # Get only running containers
+- name: Get list of all Docker container IDs
+  ansible.builtin.command: docker ps -q  # Retrieves IDs of all running containers
   register: docker_containers
 
 - name: Stop all Docker containers
