@@ -1,0 +1,31 @@
+---
+- name: Get list of all Docker containers
+  community.docker.docker_container:
+    state: present  # Get only running containers
+  register: docker_containers
+
+- name: Stop all Docker containers
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: stopped
+  loop: "{{ docker_containers.stdout_lines }}"
+
+- name: Backup each container excluding NFS volume
+  ansible.builtin.rsync:
+    src: "/var/lib/docker/volumes/{{ item }}/"
+    dest: "/mnt/cbackups/{{ item }}"
+    exclude:
+      - "/var/lib/docker/volumes/*_nfs"  # Exclude the NFS volume directory
+    recursive: true
+    times: true
+    checksum: true  # Optional, for data integrity checks
+  loop: "{{ docker_containers.stdout_lines }}"  # Iterate over container IDs
+  when: docker_containers.stdout_lines | length > 0
+
+- name: Restart all Docker containers
+  community.docker.docker_container:
+    name: "{{ item.Name }}"  # Use the container name for restart
+    state: started
+    restart: true # Restart container
+  loop: "{{ docker_containers.containers }}"
+  when: docker_containers.containers | length > 0
