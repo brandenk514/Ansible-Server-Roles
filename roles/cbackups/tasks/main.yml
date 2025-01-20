@@ -11,10 +11,10 @@
   loop: "{{ docker_containers.stdout_lines }}"
 
 - name: Backup each container excluding NFS volume
-  ansible.builtin.rsync:
+  ansible.posix.synchronize:
     src: "/var/lib/docker/volumes/{{ item }}/"
     dest: "/mnt/cbackups/{{ item }}"
-    exclude:
+    rsync_opts:
       - "/var/lib/docker/volumes/*_nfs"  # Exclude the NFS volume directory
     recursive: true
     times: true
