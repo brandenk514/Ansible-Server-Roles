@@ -1,7 +1,4 @@
 ---
-- name: Set NTP on
-  command: timedatectl set-ntp on
-
 - name: Set timezone to US Pacific
   community.general.timezone:
     name: America/Los_Angeles
@@ -10,23 +7,6 @@
   ansible.builtin.template:
     src: motd
     dest: /etc/motd
-    owner: root
-    group: root
-    mode: "0600"
-    backup: true
-
-- name: Create timesyncd.conf.d 
-  ansible.builtin.file:
-    path: /etc/systemd/timesyncd.conf.d/
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-
-- name: Update NTP sources for timesyncd
-  ansible.builtin.template:
-    src: uac-ntp.conf
-    dest: /etc/systemd/timesyncd.conf.d/50-uac-timesyncd.conf
     owner: root
     group: root
     mode: "0600"
@@ -95,13 +75,13 @@
   register: swapfile_stat
 
 - name: Create a swap file using fallocate
-  command: fallocate -l 4G /swapfile
+  ansible.builtin.command: fallocate -l 4G /swapfile
   args:
     creates: /swapfile
   when: not swapfile_stat.stat.exists
 
 - name: Set up swap file with correct permissions
-  file:
+  ansible.builtin.file:
     path: /swapfile
     owner: root
     group: root
@@ -109,15 +89,15 @@
   when: not swapfile_stat.stat.exists
 
 - name: Format the file as swap
-  command: mkswap /swapfile
+  ansible.builtin.command: mkswap /swapfile
   when: not swapfile_stat.stat.exists
 
 - name: Enable the swap file
-  command: swapon /swapfile
+  ansible.builtin.command: swapon /swapfile
   when: not swapfile_stat.stat.exists
 
 - name: Add swap file to /etc/fstab
-  mount:
+  ansible.posix.mount:
     name: none
     src: /swapfile
     fstype: swap
@@ -128,22 +108,22 @@
   when: not swapfile_stat.stat.exists
 
 - name: Verify swap is active
-  command: swapon --show
+  ansible.builtin.command: swapon --show
   register: swap_output
   when: not swapfile_stat.stat.exists
 
 - name: Display swap info
-  debug:
+  ansible.builtin.debug:
     var: swap_output.stdout
   when: not swapfile_stat.stat.exists
 
 - name: Check for reboot-required file
-  stat:
+  ansible.builtin.stat:
     path: /var/run/reboot-required
   register: reboot_required_file
 
 - name: Reboot the box
-  reboot:
+  ansible.builtin.reboot:
     msg: "Reboot initiated by AWX for kernel updates"
     connect_timeout: 5
     reboot_timeout: 300
