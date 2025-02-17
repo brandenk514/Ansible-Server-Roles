@@ -18,6 +18,6 @@
 
     - name: Restart Chrony service
       ansible.builtin.service:
-        name: chronyd
+        name: chrony
         state: restarted
         enabled: true
