@@ -1,46 +1,33 @@
 ---
-- name: Set NTP on
-  ansible.builtin.command: timedatectl set-ntp on
-
 - name: Set timezone to US Pacific
   community.general.timezone:
     name: America/Los_Angeles
 
-- name: Update Message of the Day
-  ansible.builtin.template:
-    src: motd
-    dest: /etc/motd
-    owner: root
-    group: root
-    mode: "0600"
-    backup: true
+- name: Install additional packages
+  ansible.builtin.apt:
+    pkg:
+      - chrony
+    state: present
 
-- name: Create timesyncd.conf.d
-  ansible.builtin.file:
-    path: /etc/systemd/timesyncd.conf.d/
-    state: directory
+- name: Copy drop-in Chrony sources file
+  ansible.builtin.copy:
+    src: /roles/templates/uac-ntp.sources
+    dest: /etc/chrony/sources.d/uac-ntp.sources
     owner: root
     group: root
-    mode: "0755"
-
-- name: Update NTP sources for timesyncd
-  ansible.builtin.template:
-    src: uac-ntp.conf
-    dest: /etc/systemd/timesyncd.conf.d/50-uac-timesyncd.conf
-    owner: root
-    group: root
-    mode: "0600"
-    backup: true
+    mode: '0644'
+  notify: Restart Chrony service
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
-    src: sshd_config
+    src: /roles/templates/sshd_config
     dest: /etc/ssh/sshd_config.d/00-uac-sshd.conf
     owner: root
     group: root
     mode: "0600"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
+  notify: Restart_sshd
 
 - name: Check for reboot-required file
   ansible.builtin.stat:

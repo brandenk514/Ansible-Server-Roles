@@ -21,12 +21,12 @@
     autoremove: true
 
 - name: Check if reboot is required
-  stat:
+  ansible.builtin.stat:
     path: /var/run/reboot-required
   register: reboot_required_file
 
 - name: Reboot the box if needed
-  reboot:
+  ansible.builtin.reboot:
     msg: "Reboot initiated by AWX for kernel updates"
     connect_timeout: 5
     reboot_timeout: 300

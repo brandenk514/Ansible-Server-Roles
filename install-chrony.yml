@@ -1,0 +1,23 @@
+- name: Install and configure Chrony
+  hosts: all
+  become: true
+  tasks:
+    - name: Install additional packages
+      ansible.builtin.apt:
+        pkg:
+          - chrony
+        state: present
+
+    - name: Copy drop-in Chrony sources file
+      ansible.builtin.copy:
+        src: /roles/templates/uac-ntp.sources
+        dest: /etc/chrony/sources.d/uac-ntp.sources
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart Chrony service
+      ansible.builtin.service:
+        name: chronyd
+        state: restarted
+        enabled: true
