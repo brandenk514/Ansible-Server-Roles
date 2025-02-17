@@ -5,7 +5,7 @@
 
 - name: Update Message of the Day
   ansible.builtin.template:
-    src: motd
+    src: /roles/templates/motd
     dest: /etc/motd
     owner: root
     group: root
@@ -21,26 +21,28 @@
       - nano
       - iputils-ping
       - dnsutils
+      - chrony
     state: present
 
-- name: Gather facts about installed packages
-  ansible.builtin.package_facts:
-
-- name: Removing UFW from docker installs
-  ansible.builtin.apt:
-    name: ufw
-    state: absent
-  when: "'docker-ce' in ansible_facts.packages"
+- name: Copy drop-in Chrony sources file
+  ansible.builtin.copy:
+    src: /roles/templates/uac-ntp.sources
+    dest: /etc/chrony/sources.d/uac-ntp.sources
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Chrony service
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
-    src: sshd_config
+    src: /roles/templates/sshd_config
     dest: /etc/ssh/sshd_config.d/00-uac-sshd.conf
     owner: root
     group: root
     mode: "0600"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
+  notify: Restart_sshd
 
 - name: 'Check if /etc/cloud/ exists'
   ansible.builtin.stat:
@@ -67,7 +69,6 @@
   loop:
     - 192.168.105.0/24
     - 192.168.100.0/24
-  when: "'docker-ce' not in ansible_facts.packages"
 
 - name: Check if swapfile exists
   ansible.builtin.stat:
