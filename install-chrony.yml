@@ -10,7 +10,7 @@
 
     - name: Copy drop-in Chrony sources file
       ansible.builtin.copy:
-        src: /roles/templates/uac-ntp.sources
+        src: roles/templates/uac-ntp.sources
         dest: /etc/chrony/sources.d/uac-ntp.sources
         owner: root
         group: root
