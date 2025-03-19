@@ -1,7 +1,7 @@
 ---
 - name: Restart_sshd
   ansible.builtin.service:
-    name: sshd
+    name: ssh
     state: restarted
 
 - name: Restart Chrony service
