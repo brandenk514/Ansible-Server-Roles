@@ -5,7 +5,7 @@
 
 - name: Update Message of the Day
   ansible.builtin.template:
-    src: /roles/templates/motd
+    src: roles/templates/motd
     dest: /etc/motd
     owner: root
     group: root
