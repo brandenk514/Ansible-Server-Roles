@@ -26,7 +26,7 @@
 
 - name: Copy drop-in Chrony sources file
   ansible.builtin.copy:
-    src: /roles/templates/uac-ntp.sources
+    src: roles/templates/uac-ntp.sources
     dest: /etc/chrony/sources.d/uac-ntp.sources
     owner: root
     group: root
@@ -35,7 +35,7 @@
 
 - name: Update sshd configuration safely, avoid locking yourself out
   ansible.builtin.template:
-    src: /roles/templates/sshd_config
+    src: roles/templates/sshd_config
     dest: /etc/ssh/sshd_config.d/00-uac-sshd.conf
     owner: root
     group: root
