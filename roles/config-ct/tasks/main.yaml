@@ -7,6 +7,8 @@
   ansible.builtin.apt:
     pkg:
       - chrony
+      - curl
+      - nano
     state: present
 
 - name: Copy drop-in Chrony sources file
@@ -28,6 +30,100 @@
     validate: /usr/sbin/sshd -t -f %s
     backup: true
   notify: Restart_sshd
+
+- name: Create user 'uac-admin'
+  ansible.builtin.user:
+    name: uac-admin
+    state: present
+    create_home: true
+    shell: /bin/bash
+    groups: sudo
+    append: true
+
+- name: Set user with runtime-hashed password
+  ansible.builtin.user:
+    name: uac-admin
+    password: "{{ plain_password | password_hash('sha512') }}"
+    update_password: on_create  # Avoids rehashing on subsequent runs
+
+- name: Ensure /etc/sudoers.d exists
+  ansible.builtin.file:
+    path: /etc/sudoers.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Grant uac-admin passwordless sudo
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/uac-admin
+    content: "uac-admin ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo --check --file=%s'
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install prerequisites for Docker apt repo
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: true
+  # Ensure secure HTTPS via apt and trust infrastructure.
+
+- name: Ensure keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Docker’s official GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Add Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: >
+      deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+    filename: docker
+
+- name: Update apt cache after adding Docker repo
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install Docker Engine and components
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+
+- name: Ensure Docker service is running and enabled
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Add current user to docker group (optional, avoid using sudo for docker)
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
 
 - name: Check for reboot-required file
   ansible.builtin.stat:
