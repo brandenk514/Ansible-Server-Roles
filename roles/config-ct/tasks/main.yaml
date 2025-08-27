@@ -9,7 +9,13 @@
       - chrony
       - curl
       - nano
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
     state: present
+    update_cache: true
 
 - name: Copy drop-in Chrony sources file
   ansible.builtin.copy:
@@ -66,18 +72,6 @@
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: true
-
-- name: Install prerequisites for Docker apt repo
-  ansible.builtin.apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg
-      - lsb-release
-    state: present
-    update_cache: true
-  # Ensure secure HTTPS via apt and trust infrastructure.
 
 - name: Ensure keyrings directory exists
   ansible.builtin.file:
