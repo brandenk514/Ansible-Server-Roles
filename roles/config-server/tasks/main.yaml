@@ -44,18 +44,9 @@
 
 - name: Add user to docker group (optional)
   ansible.builtin.user:
-    name: uac-admin
+    name: "{{ target_user }}"
     groups: docker
     append: true
-
-- name: Update Message of the Day
-  ansible.builtin.template:
-    src: roles/templates/motd
-    dest: /etc/motd
-    owner: root
-    group: root
-    mode: "0600"
-    backup: true
 
 - name: Copy drop-in Chrony sources file
   ansible.builtin.copy:
@@ -86,7 +77,6 @@
     mode: "0600"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
-  notify: Restart_sshd 
 
 - name: Check if swapfile exists
   ansible.builtin.stat:
@@ -147,9 +137,8 @@
 - name: Add authorized SSH keys
   ansible.builtin.authorized_key:
     user: "{{ target_user }}"
-    key: "{{ item }}"
+    key: "{{ ssh_keys }}"
     state: present
-  loop: "{{ ssh_keys }}"
 
 - name: Update user password
   ansible.builtin.user:
