@@ -44,6 +44,17 @@
     backup: true
   notify: Restart_sshd
 
+- name: Update sshd configuration safely, avoid locking yourself out
+  ansible.builtin.template:
+    src: roles/templates/99-sudoers
+    dest: /etc/sudoers.d/99-sudoers
+    owner: root
+    group: root
+    mode: "0600"
+    validate: /usr/sbin/sshd -t -f %s
+    backup: true
+  notify: Restart_sshd 
+
 - name: Check if swapfile exists
   ansible.builtin.stat:
     path: /swapfile
