@@ -1,9 +1,0 @@
-# This is a custom conf that belongs in the conf.d folder under file name 99-*
-
-LoginGraceTime 1m
-PermitRootLogin no
-PermitEmptyPasswords no
-PubkeyAuthentication yes
-MaxAuthTries 3
-MaxSessions 5
-PasswordAuthentication no
