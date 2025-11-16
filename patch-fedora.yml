@@ -1,0 +1,23 @@
+---
+- hosts: all
+  become: true
+  serial: 3
+  pre_tasks:
+    - name: Ensure target is Fedora-based
+      assert:
+        that:
+          - ansible_os_family == "RedHat"
+          - ansible_distribution == "Fedora" or ansible_distribution_major_version | int >= 22
+        fail_msg: "This playbook is only for Fedora-based systems"
+      tags:
+        - always
+
+  roles:
+    - patch-fedora
+
+  post_tasks:
+    - name: Display final status
+      debug:
+        msg: "{{ inventory_hostname }} patching completed successfully"
+      tags:
+        - patch

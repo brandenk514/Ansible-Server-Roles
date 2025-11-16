@@ -1,0 +1,57 @@
+---
+- name: Update all packages on Fedora systems
+  dnf:
+    name: "*"
+    state: latest
+  register: dnf_update
+  tags:
+    - patch
+    - packages
+
+- name: Check if a reboot is required
+  command: needs-reboot
+  register: reboot_required
+  changed_when: false
+  failed_when: false
+  tags:
+    - patch
+    - reboot-check
+
+- name: Display reboot status
+  debug:
+    msg: "Reboot required: {{ reboot_required.rc == 0 }}"
+  tags:
+    - patch
+    - reboot-check
+
+- name: Reboot server if required
+  reboot:
+    msg: "Ansible initiated reboot due to system updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: whoami
+  when: reboot_required.rc == 0
+  tags:
+    - patch
+    - reboot
+
+- name: Verify system is responsive after patching
+  wait_for_connection:
+    delay: 10
+    timeout: 300
+  tags:
+    - patch
+    - verify
+
+- name: Display patch summary
+  debug:
+    msg: |
+      Fedora patching completed:
+      - Packages updated: {{ dnf_update.changed | default(false) }}
+      - Reboot was required: {{ reboot_required.rc == 0 }}
+      - Reboot was executed: {{ reboot_required.rc == 0 and not (ansible_check_mode | default(false)) }}
+  tags:
+    - patch
+    - summary
