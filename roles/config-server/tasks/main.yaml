@@ -6,7 +6,7 @@
 - name: Set system hostname from survey variable
   ansible.builtin.hostname:
     name: "{{ target_hostname }}"
-    become: true
+  become: true
   when: target_hostname is defined and target_hostname | length > 0
 
 - name: Install additional packages
