@@ -3,10 +3,10 @@
   community.general.timezone:
     name: America/Los_Angeles
 
-# - name: Set system hostname from survey variable
-#   ansible.builtin.hostname:
-#     name: "{{ target_hostname }}"
-#   when: target_hostname is defined and target_hostname | length >= 0
+- name: Set system hostname from survey variable
+  ansible.builtin.hostname:
+    name: "{{ target_hostname }}"
+  when: target_hostname is defined and target_hostname | length >= 0
 
 - name: Install additional packages
   ansible.builtin.dnf:
