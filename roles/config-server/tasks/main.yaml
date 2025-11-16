@@ -92,13 +92,13 @@
 - name: Add authorized SSH keys
   ansible.builtin.authorized_key:
     user: "{{ target_user }}"
-    key: "{{ ssh_keys }}"
+    key: "{{ ssh_key }}"
     state: present
 
 - name: Update user password
   ansible.builtin.user:
     name: "{{ target_user }}"
-    password: "{{ target_password }}"
+    password: "{{ target_pass }}"
 
 - name: Check for `needs-restarting` (dnf/yum) indicating a reboot is required
   ansible.builtin.command:
