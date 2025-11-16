@@ -9,6 +9,7 @@
   when: target_hostname is defined and target_hostname | length >= 0
 
 - name: Install additional packages
+  become: true
   ansible.builtin.dnf:
     name:
       - qemu-guest-agent
@@ -19,7 +20,6 @@
       - dnf-plugins-core
     state: present
     update_cache: true
-  become: yes
 
 - name: Add Docker GPG key
   ansible.builtin.rpm_key:
