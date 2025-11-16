@@ -89,13 +89,6 @@
     group: "{{ target_user }}"
     mode: '0700'
 
-- name: Debug SSH keys variable
-  ansible.builtin.debug:
-    msg: |
-      ssh_key type: {{ ssh_key | type_debug }}
-      ssh_key value: {{ ssh_key }}
-  when: ssh_key is defined
-
 - name: Add authorized SSH keys
   ansible.builtin.authorized_key:
     user: "{{ target_user }}"
