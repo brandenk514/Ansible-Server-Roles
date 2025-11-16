@@ -92,8 +92,10 @@
 - name: Add authorized SSH keys
   ansible.builtin.authorized_key:
     user: "{{ target_user }}"
-    key: "{{ ssh_key }}"
+    key: "{{ item }}"
     state: present
+  loop: "{{ ssh_key.split('\n') | select('string') | list }}"
+  when: ssh_key is defined and ssh_key | length > 0
 
 - name: Update user password
   ansible.builtin.user:
