@@ -3,36 +3,45 @@
   community.general.timezone:
     name: America/Los_Angeles
 
+- name: Set system hostname from survey variable
+  ansible.builtin.hostname:
+    name: "{{ target_hostname }}"
+  when: target_hostname is defined and target_hostname | length > 0
+
 - name: Install additional packages
-  ansible.builtin.apt:
-    pkg:
+  ansible.builtin.dnf:
+    name:
       - qemu-guest-agent
       - chrony
-      - apt-transport-https
       - ca-certificates
       - curl
-      - software-properties-common
-      - gnupg
+      - gnupg2
+      - dnf-plugins-core
     state: present
     update_cache: true
 
 - name: Add Docker GPG key
-  ansible.builtin.apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
+  ansible.builtin.rpm_key:
+    key: https://download.docker.com/linux/fedora/gpg
     state: present
 
 - name: Add Docker repository
-  ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-    state: present
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: "https://download.docker.com/linux/fedora/{{ ansible_distribution_major_version }}/$basearch/stable"
+    gpgkey: https://download.docker.com/linux/fedora/gpg
+    gpgcheck: yes
+    enabled: yes
 
 - name: Install Docker packages
-  ansible.builtin.apt:
+  ansible.builtin.dnf:
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
       - docker-compose-plugin
+      - docker-buildx-plugin
     state: latest
     update_cache: true
 
@@ -51,7 +60,7 @@
 - name: Copy drop-in Chrony sources file
   ansible.builtin.copy:
     src: roles/templates/uac-ntp.sources
-    dest: /etc/chrony/sources.d/uac-ntp.sources
+    dest: /etc/chrony.d/uac-ntp.conf
     owner: root
     group: root
     mode: '0644'
@@ -75,56 +84,8 @@
     owner: root
     group: root
     mode: "0600"
-    validate: /usr/sbin/sshd -t -f %s
+    validate: visudo -cf %s
     backup: true
-
-- name: Check if swapfile exists
-  ansible.builtin.stat:
-    path: /swapfile
-  register: swapfile_stat
-
-- name: Create a swap file using fallocate
-  ansible.builtin.command: fallocate -l 4G /swapfile
-  args:
-    creates: /swapfile
-  when: not swapfile_stat.stat.exists
-
-- name: Set up swap file with correct permissions
-  ansible.builtin.file:
-    path: /swapfile
-    owner: root
-    group: root
-    mode: '0600'
-  when: not swapfile_stat.stat.exists
-
-- name: Format the file as swap
-  ansible.builtin.command: mkswap /swapfile
-  when: not swapfile_stat.stat.exists
-
-- name: Enable the swap file
-  ansible.builtin.command: swapon /swapfile
-  when: not swapfile_stat.stat.exists
-
-- name: Add swap file to /etc/fstab
-  ansible.posix.mount:
-    name: none
-    src: /swapfile
-    fstype: swap
-    opts: sw
-    dump: 0
-    passno: 0
-    state: present
-  when: not swapfile_stat.stat.exists
-
-- name: Verify swap is active
-  ansible.builtin.command: swapon --show
-  register: swap_output
-  when: not swapfile_stat.stat.exists
-
-- name: Display swap info
-  ansible.builtin.debug:
-    var: swap_output.stdout
-  when: not swapfile_stat.stat.exists
 
 - name: Ensure .ssh directory exists
   ansible.builtin.file:
