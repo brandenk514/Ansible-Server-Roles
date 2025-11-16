@@ -1,23 +1,19 @@
 ---
 - name: Set timezone to US Pacific
-  become: true
   community.general.timezone:
     name: America/Los_Angeles
 
 - name: Set system hostname from survey variable
-  become: true
   ansible.builtin.hostname:
     name: "{{ target_hostname }}"
   when: target_hostname is defined and target_hostname | length >= 0
 
 - name: Add Docker GPG key
-  become: true
   ansible.builtin.rpm_key:
     key: https://download.docker.com/linux/fedora/gpg
     state: present
 
 - name: Add Docker repository
-  become: true
   ansible.builtin.yum_repository:
     name: docker-ce-stable
     description: Docker CE Stable - $basearch
@@ -27,7 +23,6 @@
     enabled: yes
 
 - name: Install Docker packages
-  become: true
   ansible.builtin.dnf:
     name:
       - qemu-guest-agent
@@ -45,31 +40,27 @@
     update_cache: true
 
 - name: Ensure Docker service is started and enabled
-  become: true
   ansible.builtin.service:
     name: docker
     state: started
     enabled: true
 
 - name: Add user to docker group (optional)
-  become: true
   ansible.builtin.user:
     name: "{{ target_user }}"
     groups: docker
     append: true
 
 - name: Copy drop-in Chrony sources file
-  become: true
   ansible.builtin.copy:
     src: roles/templates/uac-ntp.sources
-    dest: /etc/chrony.d/uac-ntp.conf
+    dest: /etc/chrony.conf
     owner: root
     group: root
     mode: '0644'
   notify: Restart Chrony service
 
 - name: Update sshd configuration safely, avoid locking yourself out
-  become: true
   ansible.builtin.template:
     src: roles/templates/sshd_config
     dest: /etc/ssh/sshd_config.d/99-uac-sshd.conf
@@ -81,7 +72,6 @@
   notify: Restart_sshd
 
 - name: Update sshd configuration safely, avoid locking yourself out
-  become: true
   ansible.builtin.template:
     src: roles/templates/99-sudoers
     dest: /etc/sudoers.d/99-sudoers
@@ -92,7 +82,6 @@
     backup: true
 
 - name: Ensure .ssh directory exists
-  become: true
   ansible.builtin.file:
     path: "/home/{{ target_user }}/.ssh"
     state: directory
@@ -101,14 +90,12 @@
     mode: '0700'
 
 - name: Add authorized SSH keys
-  become: true
   ansible.builtin.authorized_key:
     user: "{{ target_user }}"
     key: "{{ ssh_keys }}"
     state: present
 
 - name: Update user password
-  become: true
   ansible.builtin.user:
     name: "{{ target_user }}"
     password: "{{ target_password }}"
