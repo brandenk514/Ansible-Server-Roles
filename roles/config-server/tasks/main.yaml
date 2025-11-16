@@ -99,3 +99,25 @@
   ansible.builtin.user:
     name: "{{ target_user }}"
     password: "{{ target_password }}"
+
+- name: Check for `needs-restarting` (dnf/yum) indicating a reboot is required
+  ansible.builtin.command:
+    cmd: needs-restarting -r
+  register: needs_restarting_result
+  failed_when: false
+  changed_when: false
+  ignore_errors: true
+
+- name: Set fact if reboot is required
+  ansible.builtin.set_fact:
+    reboot_required: "{{ (reboot_required_file.stat.exists | default(false)) or (needs_restarting_result.rc is defined and needs_restarting_result.rc == 1) }}"
+
+- name: Reboot the box when required
+  ansible.builtin.reboot:
+    msg: "Reboot initiated by Ansible because a reboot is required"
+    connect_timeout: 5
+    reboot_timeout: 300
+    post_reboot_delay: 30
+    test_command: uptime
+  when: reboot_required | default(false)
+  become: true
