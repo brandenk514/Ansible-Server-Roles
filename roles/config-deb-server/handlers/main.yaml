@@ -1,0 +1,13 @@
+---
+- name: Restart_sshd
+  become: true
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+
+- name: Restart Chrony service
+  become: true
+  ansible.builtin.service:
+    name: chronyd
+    state: restarted
+    enabled: true

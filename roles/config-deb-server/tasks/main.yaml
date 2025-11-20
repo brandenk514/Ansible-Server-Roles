@@ -1,0 +1,160 @@
+---
+- name: Set timezone to US Pacific
+  community.general.timezone:
+    name: America/Los_Angeles
+
+- name: Install additional packages
+  ansible.builtin.apt:
+    pkg:
+      - qemu-guest-agent
+      - chrony
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - gnupg
+    state: present
+    update_cache: true
+
+- name: Add Docker GPG key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: latest
+    update_cache: true
+
+- name: Ensure Docker service is started and enabled
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Add user to docker group (optional)
+  ansible.builtin.user:
+    name: "{{ target_user }}"
+    groups: docker
+    append: true
+
+- name: Copy drop-in Chrony sources file
+  ansible.builtin.copy:
+    src: roles/templates/uac-ntp.sources
+    dest: /etc/chrony/sources.d/uac-ntp.sources
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Chrony service
+
+- name: Update sshd configuration safely, avoid locking yourself out
+  ansible.builtin.template:
+    src: roles/templates/sshd_config
+    dest: /etc/ssh/sshd_config.d/99-uac-sshd.conf
+    owner: root
+    group: root
+    mode: "0600"
+    validate: /usr/sbin/sshd -t -f %s
+    backup: true
+  notify: Restart_sshd
+
+- name: Update sshd configuration safely, avoid locking yourself out
+  ansible.builtin.template:
+    src: roles/templates/99-sudoers
+    dest: /etc/sudoers.d/99-sudoers
+    owner: root
+    group: root
+    mode: "0600"
+    validate: /usr/sbin/sshd -t -f %s
+    backup: true
+
+- name: Check if swapfile exists
+  ansible.builtin.stat:
+    path: /swapfile
+  register: swapfile_stat
+
+- name: Create a swap file using fallocate
+  ansible.builtin.command: fallocate -l 4G /swapfile
+  args:
+    creates: /swapfile
+  when: not swapfile_stat.stat.exists
+
+- name: Set up swap file with correct permissions
+  ansible.builtin.file:
+    path: /swapfile
+    owner: root
+    group: root
+    mode: '0600'
+  when: not swapfile_stat.stat.exists
+
+- name: Format the file as swap
+  ansible.builtin.command: mkswap /swapfile
+  when: not swapfile_stat.stat.exists
+
+- name: Enable the swap file
+  ansible.builtin.command: swapon /swapfile
+  when: not swapfile_stat.stat.exists
+
+- name: Add swap file to /etc/fstab
+  ansible.posix.mount:
+    name: none
+    src: /swapfile
+    fstype: swap
+    opts: sw
+    dump: 0
+    passno: 0
+    state: present
+  when: not swapfile_stat.stat.exists
+
+- name: Verify swap is active
+  ansible.builtin.command: swapon --show
+  register: swap_output
+  when: not swapfile_stat.stat.exists
+
+- name: Display swap info
+  ansible.builtin.debug:
+    var: swap_output.stdout
+  when: not swapfile_stat.stat.exists
+
+- name: Ensure .ssh directory exists
+  ansible.builtin.file:
+    path: "/home/{{ target_user }}/.ssh"
+    state: directory
+    owner: "{{ target_user }}"
+    group: "{{ target_user }}"
+    mode: '0700'
+
+- name: Add authorized SSH keys
+  ansible.builtin.authorized_key:
+    user: "{{ target_user }}"
+    key: "{{ ssh_keys }}"
+    state: present
+
+- name: Update user password
+  ansible.builtin.user:
+    name: "{{ target_user }}"
+    password: "{{ target_password }}"
+
+- name: Check for reboot-required file
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+
+- name: Reboot the box
+  ansible.builtin.reboot:
+    msg: "Reboot initiated by AWX for kernel updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    post_reboot_delay: 30
+    test_command: uptime
+  when: reboot_required_file.stat.exists
