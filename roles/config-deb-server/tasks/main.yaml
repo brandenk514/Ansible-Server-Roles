@@ -1,21 +1,7 @@
 ---
 - name: Set timezone to US Pacific
-  become: true
   community.general.timezone:
     name: America/Los_Angeles
-
-# - name: Install additional packages
-#   ansible.builtin.apt:
-#     pkg:
-#       - qemu-guest-agent
-#       - chrony
-#       - apt-transport-https
-#       - ca-certificates
-#       - curl
-#       - software-properties-common
-#       - gnupg
-#     state: present
-#     update_cache: true
 
 - name: Add Docker GPG key
   ansible.builtin.apt_key:
