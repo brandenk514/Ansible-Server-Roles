@@ -1,6 +1,7 @@
 ---
 - hosts: all
   become: true
+  become_user: root
   serial: 3
   pre_tasks:
     - name: Ensure target is Fedora-based
